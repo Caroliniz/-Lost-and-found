@@ -20,6 +20,7 @@ Copiem o modelo abaixo sempre que precisarem de uma entrada nova.
 
 ```markdown
 ### [data] — [tarefa ou trecho]
+
 - **Prompt principal:**
 - **O que a IA gerou:**
 - **O que o time aproveitou:**
@@ -37,7 +38,29 @@ Copiem o modelo abaixo sempre que precisarem de uma entrada nova.
 
 ### [data] — [tarefa ou trecho]
 
-- **Prompt principal:**
-- **O que a IA gerou:**
-- **O que o time aproveitou:**
-- **O que o time corrigiu ou rejeitou, e por quê:**
+- **Prompt principal:** Crie uma aplicação web completa, responsiva e funcional (MVP pronto para produção) de Achados e Perdidos para o Senac Canoas (Brasil) em pt-BR, usando React, Tailwind CSS, JavaScript, Netlify Functions e Supabase (Auth, Database, Storage) em planos gratuitos.
+
+Interface e Páginas:
+
+- Design moderno e minimalista (azul-escuro, laranja e fundos claros) com navegação: Início, Procurar, Achei algo, Perdi algo, Administração.
+- Página Inicial: barra de busca, ações rápidas, estatísticas e objetos encontrados recentemente.
+- Busca e Detalhes: filtros por nome, categoria, cor, local, data e palavras-chave; página de detalhes do item com botão "Tenho interesse".
+
+Funcionalidades Principais:
+
+- Itens Encontrados: formulário com upload de foto, preenchimento sugerido por IA editável (categoria, cor, características, marcas) com analisador local gratuito como fallback, e aprovação manual antes de publicar.
+- Itens Perdidos: formulário de registro que gera um protocolo único, mantendo e-mail/telefone privados ocultos do público.
+- Correspondência com IA (Matching): sugerir possíveis combinações entre itens perdidos e encontrados com pontuação de relevância e justificativa (sem confirmação automática).
+- Fluxo de Reivindicação e Retirada: usuário solicita o item -> recepção aprova -> sistema gera código único aleatório de retirada (salvo como hash SHA-256) -> recepção valida o código presencialmente -> status muda para "Devolvido".
+- Painel Administrativo: área restrita à equipe (Supabase Auth) para gerenciar itens e relatos, aprovar/rejeitar solicitações, validar códigos de retirada, atualizar status (Encontrado, Aguardando retirada, Devolvido), ver contatos mascarados e ocultar fotos sensíveis.
+
+Segurança e Privacidade:
+
+- Remover metadados EXIF das fotos enviadas; restringir fotos com rostos, documentos ou cartões bancários apenas à equipe.
+- Ocultar automaticamente itens devolvidos da busca pública e arquivar registros com mais de 90 dias.
+- Nunca expor segredos ou tokens administrativos no código frontend; incluir um arquivo .env.example.
+- Inspecionar o código existente primeiro, reutilizar componentes funcionais e garantir persistência real de dados (sem dados fictícios/mock).
+
+- **O que a IA gerou:** O esqueleto completo da frontend do site
+- **O que o time aproveitou:** Tudo
+- **O que o time corrigiu ou rejeitou, e por quê:** Nada

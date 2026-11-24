@@ -14,6 +14,7 @@ Copy the template below whenever you need a new entry.
 
 ```markdown
 ## [date] — [decision title]
+
 - **Decision:**
 - **Alternatives considered:**
 - **Rationale:**
@@ -25,8 +26,8 @@ Copy the template below whenever you need a new entry.
 - **Alternatives considered:** Java with Spring Boot; Python with FastAPI.
 - **Rationale:** the team is already more familiar with JavaScript, and a one-week deadline favors a stack everyone can contribute to from day one.
 
-## [date] — [decision title]
+## [24/11/2026] — [FrontEnd stack choice]
 
-- **Decision:**
-- **Alternatives considered:**
-- **Rationale:**
+- **Decision:** use Vite.js on front-end
+- **Alternatives considered:** None
+- **Rationale:** the team is more familiar with vite and react
