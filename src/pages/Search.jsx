@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
+import useSWR from 'swr'
 import { Search as SearchIcon, SlidersHorizontal, RotateCcw, PackageSearch } from 'lucide-react'
 import { listPublicItems } from '../data/api.js'
 import { CATEGORIES, COLORS, LOCATIONS, AUTO_HIDE_DAYS } from '../data/constants.js'
@@ -12,8 +13,6 @@ export default function Search() {
   const [params, setParams] = useSearchParams()
   const filters = Object.fromEntries(Object.entries(PARAMS).map(([k, p]) => [k, params.get(p) || '']))
   const [text, setText] = useState(filters.q)
-  const [items, setItems] = useState(null)
-  const [error, setError] = useState('')
   const [showFilters, setShowFilters] = useState(false)
 
   const setFilter = (key, value) => {
@@ -28,16 +27,9 @@ export default function Search() {
     return () => clearTimeout(t)
   }, [text]) // eslint-disable-line react-hooks/exhaustive-deps
 
-  const key = params.toString()
-  useEffect(() => {
-    let alive = true
-    setItems(null)
-    setError('')
-    listPublicItems(filters)
-      .then((r) => alive && setItems(r))
-      .catch(() => alive && setError('Não foi possível carregar os objetos. Tente novamente.'))
-    return () => { alive = false }
-  }, [key]) // eslint-disable-line react-hooks/exhaustive-deps
+  const { data, error: loadError, isLoading } = useSWR(['public', 'items', params.toString()], () => listPublicItems(filters))
+  const items = isLoading ? null : data ?? null
+  const error = loadError ? 'Não foi possível carregar os objetos. Tente novamente.' : ''
 
   const activeCount = ['category', 'color', 'location', 'from', 'to'].filter((k) => filters[k]).length
   const clear = () => { setText(''); setParams({}, { replace: true }) }

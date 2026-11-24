@@ -1,14 +1,38 @@
 import { useEffect, useState } from 'react'
 import { NavLink, Link, Outlet, useLocation } from 'react-router-dom'
-import { Menu, X, ShieldCheck } from 'lucide-react'
+import { Menu, X, ShieldCheck, LogOut, UserRound } from 'lucide-react'
+import { useAuth } from '../auth/AuthProvider.jsx'
 
 export const NAV = [
   { to: '/', label: 'Início', end: true },
   { to: '/procurar', label: 'Procurar' },
   { to: '/achei', label: 'Achei algo' },
   { to: '/perdi', label: 'Perdi algo' },
-  { to: '/admin', label: 'Administração' },
+  { to: '/admin', label: 'Administração', staff: true },
 ]
+
+function AccountLinks({ linkCls, mobile }) {
+  const { user, profile, signOut, loading } = useAuth()
+  if (loading) return null
+  if (!user) {
+    return (
+      <div className={`flex gap-2 ${mobile ? 'mt-2 border-t border-line pt-3' : 'ml-2'}`}>
+        <NavLink to="/entrar" className={linkCls}>Entrar</NavLink>
+        <Link to="/cadastro" className="rounded-lg bg-flame-500 px-3 py-2 text-sm font-semibold text-white transition hover:bg-flame-600">Criar conta</Link>
+      </div>
+    )
+  }
+  return (
+    <div className={`flex items-center gap-1 ${mobile ? 'mt-2 border-t border-line pt-3' : 'ml-2 border-l border-line pl-3'}`}>
+      <NavLink to="/minha-conta" className={(s) => `${linkCls(s)} inline-flex items-center gap-1.5`}>
+        <UserRound className="size-4" /> {profile?.fullName?.split(' ')[0] || 'Minha conta'}
+      </NavLink>
+      <button onClick={signOut} className="inline-flex items-center gap-1.5 rounded-lg px-3 py-2 text-sm font-semibold text-navy-900/80 transition hover:bg-navy-50 hover:text-navy-900" aria-label="Sair da conta">
+        <LogOut className="size-4" /> {mobile && 'Sair'}
+      </button>
+    </div>
+  )
+}
 
 function Logo() {
   return (
@@ -25,6 +49,8 @@ function Logo() {
 export default function Layout() {
   const [open, setOpen] = useState(false)
   const { pathname } = useLocation()
+  const { isStaff } = useAuth()
+  const nav = NAV.filter((n) => !n.staff || isStaff)
   useEffect(() => { setOpen(false); window.scrollTo(0, 0) }, [pathname])
 
   const linkCls = ({ isActive }) =>
@@ -36,7 +62,8 @@ export default function Layout() {
         <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-4 sm:px-6">
           <Logo />
           <nav className="hidden items-center gap-1 md:flex" aria-label="Principal">
-            {NAV.map((n) => <NavLink key={n.to} to={n.to} end={n.end} className={linkCls}>{n.label}</NavLink>)}
+            {nav.map((n) => <NavLink key={n.to} to={n.to} end={n.end} className={linkCls}>{n.label}</NavLink>)}
+            <AccountLinks linkCls={linkCls} />
           </nav>
           <button className="rounded-lg p-2 text-navy-900 hover:bg-navy-50 md:hidden" onClick={() => setOpen((o) => !o)} aria-label="Abrir menu" aria-expanded={open}>
             {open ? <X className="size-6" /> : <Menu className="size-6" />}
@@ -45,7 +72,8 @@ export default function Layout() {
         {open && (
           <nav className="rise border-t border-line bg-white px-4 py-3 md:hidden" aria-label="Menu móvel">
             <div className="flex flex-col gap-1">
-              {NAV.map((n) => <NavLink key={n.to} to={n.to} end={n.end} className={linkCls}>{n.label}</NavLink>)}
+              {nav.map((n) => <NavLink key={n.to} to={n.to} end={n.end} className={linkCls}>{n.label}</NavLink>)}
+              <AccountLinks linkCls={linkCls} mobile />
             </div>
           </nav>
         )}

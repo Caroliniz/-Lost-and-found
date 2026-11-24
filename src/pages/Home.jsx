@@ -1,5 +1,6 @@
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
+import useSWR from 'swr'
 import { Search, PackageSearch, HandHeart, ScanSearch, ArrowRight, Ticket, ShieldCheck, Clock } from 'lucide-react'
 import { listPublicItems, getStats } from '../data/api.js'
 import { CATEGORIES } from '../data/constants.js'
@@ -21,14 +22,10 @@ const STEPS = [
 
 export default function Home() {
   const [q, setQ] = useState('')
-  const [items, setItems] = useState(null)
-  const [stats, setStats] = useState(null)
   const navigate = useNavigate()
-
-  useEffect(() => {
-    listPublicItems().then((r) => setItems(r.slice(0, 6)))
-    getStats().then(setStats)
-  }, [])
+  const { data: allItems } = useSWR(['public', 'items', ''], () => listPublicItems())
+  const { data: stats } = useSWR(['public', 'stats'], getStats)
+  const items = allItems?.slice(0, 6) ?? null
 
   const submit = (e) => {
     e.preventDefault()
