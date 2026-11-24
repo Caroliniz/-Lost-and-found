@@ -1,0 +1,52 @@
+@import "tailwindcss";
+
+@theme {
+  --font-display: "Bricolage Grotesque", ui-sans-serif, system-ui, sans-serif;
+  --font-sans: "Figtree", ui-sans-serif, system-ui, sans-serif;
+
+  --color-navy-950: #061528;
+  --color-navy-900: #0b2545;
+  --color-navy-800: #13315c;
+  --color-navy-700: #1d4373;
+  --color-navy-100: #e3eaf4;
+  --color-navy-50: #f1f5fa;
+
+  --color-flame-600: #e0790a;
+  --color-flame-500: #f7931e;
+  --color-flame-400: #ffab4a;
+  --color-flame-100: #fff0dc;
+  --color-flame-50: #fff8ee;
+
+  --color-paper: #f6f7fb;
+  --color-ink: #13213a;
+  --color-muted: #5b6b82;
+  --color-line: #e2e7ef;
+}
+
+@layer base {
+  html { scroll-behavior: smooth; }
+  body {
+    @apply bg-paper text-ink font-sans antialiased;
+  }
+  h1, h2, h3, h4 { @apply font-display tracking-tight; }
+  :focus-visible { @apply outline-2 outline-offset-2 outline-flame-500; }
+}
+
+@layer components {
+  .card { @apply rounded-2xl bg-white border border-line shadow-[0_1px_2px_rgba(11,37,69,0.04),0_8px_24px_-12px_rgba(11,37,69,0.12)]; }
+  .input {
+    @apply w-full rounded-xl border border-line bg-white px-3.5 py-2.5 text-sm text-ink placeholder:text-muted/70
+      transition focus:border-flame-500 focus:ring-4 focus:ring-flame-500/15 focus:outline-none;
+  }
+  .label { @apply mb-1.5 block text-sm font-semibold text-navy-900; }
+  .chip { @apply inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-semibold; }
+}
+
+.grain {
+  background-image:
+    radial-gradient(ellipse 60% 80% at 90% 0%, rgba(247,147,30,0.28), transparent 60%),
+    radial-gradient(ellipse 50% 70% at 0% 100%, rgba(29,67,115,0.9), transparent 70%);
+}
+
+@keyframes rise { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
+.rise { animation: rise .5s cubic-bezier(.2,.7,.2,1) both; }
