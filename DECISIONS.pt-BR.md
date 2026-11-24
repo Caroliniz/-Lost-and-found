@@ -14,6 +14,7 @@ Copiem o modelo abaixo sempre que precisarem de uma entrada nova.
 
 ```markdown
 ## [data] — [título da decisão]
+
 - **Decisão:**
 - **Alternativas consideradas:**
 - **Motivo:**
@@ -25,8 +26,8 @@ Copiem o modelo abaixo sempre que precisarem de uma entrada nova.
 - **Alternativas consideradas:** Java com Spring Boot; Python com FastAPI.
 - **Motivo:** o time já tem mais familiaridade com JavaScript, e o prazo de uma semana favorece uma stack na qual todos conseguem contribuir desde o primeiro dia.
 
-## [data] — [título da decisão]
+## [24/11/2026] — [FrontEnd stack Escolha]
 
-- **Decisão:**
-- **Alternativas consideradas:**
-- **Motivo:**
+- **Decisão:** usar vite.js no frontend
+- **Alternativas consideradas:** nenhuma
+- **Motivo:** a equipe tem mais familiaridade com vite e react

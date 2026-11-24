@@ -20,6 +20,7 @@ Copy the template below whenever you need a new entry.
 
 ```markdown
 ### [date] — [task or section]
+
 - **Main prompt:**
 - **What the AI generated:**
 - **What the team kept:**
@@ -35,9 +36,31 @@ Copy the template below whenever you need a new entry.
 - **What the team kept:** the middleware structure and the token verification flow.
 - **What the team corrected or rejected, and why:** we updated the library, moved the secret to an environment variable and added tests. The sample route was rewritten to fit our user model.
 
-### [date] — [task or section]
+### [24/11/2026] — [Creation of website skeleton front-end]
 
-- **Main prompt:**
-- **What the AI generated:**
-- **What the team kept:**
-- **What the team corrected or rejected, and why:**
+- **Main prompt:** Build a complete, responsive, production-ready Lost & Found MVP web app for Senac Canoas (Brazil) in pt-BR, using React, Tailwind CSS, JavaScript, Netlify Functions, and Supabase (Auth, Database, Storage) on free-tier services.
+
+UI & Pages:
+
+- Modern, minimalist design (dark blue, orange, light backgrounds) with navigation: Início, Procurar, Achei algo, Perdi algo, Administração.
+- Homepage: hero search bar, quick actions, statistics, and recently found items.
+- Search & Details: filter by name, category, color, location, date, and keywords; item detail view with a "Tenho interesse" claim button.
+
+Core Features:
+
+- Found Items: form with photo upload, editable AI auto-fill (category, color, features, marks) with a free local fallback analyzer, and manual approval before publishing.
+- Lost Items: report form generating a unique ID while keeping private email/phone hidden from public view.
+- AI Matching: suggest matches between lost and found items with relevance scores and reasons (no auto-confirmation).
+- Claim & Pickup Workflow: user submits claim -> staff approves -> system generates a single-use random pickup code (stored as SHA-256 hash) -> staff validates code at reception -> status updates to "Devolvido".
+- Admin Dashboard: protected staff area (Supabase Auth) to manage items/reports, approve/reject claims, validate pickup codes, update statuses (Encontrado, Aguardando retirada, Devolvido), view masked contacts, and hide sensitive photos.
+
+Security & Privacy:
+
+- Strip EXIF metadata from uploaded images; restrict photos with faces, IDs, or bank cards to staff only.
+- Auto-hide returned items from public search and archive items older than 90 days.
+- Never expose secrets or admin tokens in frontend code; include an .env.example.
+- Inspect existing code first, reuse working components, and ensure full data persistence (no mock data).
+
+- **What the AI generated:** The full skeleton of our Front-end website.
+- **What the team kept:** Everything
+- **What the team corrected or rejected, and why:** Nothing
