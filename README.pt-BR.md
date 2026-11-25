@@ -114,6 +114,6 @@ https://lost-found-senac.lovable.app/
 
 ## Links
 
-- **Repositório:** A adicionar.
+- **Repositório:** (https://github.com/Caroliniz/-Lost-and-found.git)
 - **Aplicação:** https://lost-found-senac.lovable.app/
-- **Board / projeto no GitHub:** A definir.
+- **Board / projeto no GitHub:** -Lost-and-found
