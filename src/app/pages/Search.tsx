@@ -44,7 +44,8 @@ export default function Search() {
 
   const setFilter = (key, value) => {
     const next = new URLSearchParams(params)
-    value ? next.set(PARAMS[key], value) : next.delete(PARAMS[key])
+    if (value) next.set(PARAMS[key], value)
+    else next.delete(PARAMS[key])
     setParams(next, { replace: true })
   }
 

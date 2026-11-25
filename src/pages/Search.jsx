@@ -25,7 +25,7 @@ export default function Search() {
   useEffect(() => {
     const t = setTimeout(() => { if (text !== filters.q) setFilter('q', text.trim()) }, 300)
     return () => clearTimeout(t)
-  }, [text]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [text])
 
   const { data, error: loadError, isLoading } = useSWR(['public', 'items', params.toString()], () => listPublicItems(filters))
   const items = isLoading ? null : data ?? null
