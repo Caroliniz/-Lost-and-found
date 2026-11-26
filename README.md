@@ -90,30 +90,71 @@ The exact directory structure will be documented according to the organization a
 - PostgreSQL.
 - Git.
 
-### Back-end
+###  Back-end
 
-Installation and execution commands will be added once the project configuration has been confirmed.
+The project's back-end uses *Supabase/Lovable Cloud* as its backend platform.
+
+Supabase provides the following services:
+
+- *PostgreSQL:* database management and data storage.
+- *Authentication:* user authentication.
+- *Storage:* file and image storage.
+- *RPC Functions:* execution of database functions.
+
+The application communicates directly with Supabase through the Supabase JavaScript client, performing operations on tables such as items, claims, lost_reports, and profiles.
+
+The project also uses *TanStack Start server functions*, including functionality for photo analysis.
+
+The database schema is defined in schema.sql.
 
 ### Front-end
 
-Installation and execution commands will be added once the dependencies and scripts being used have been confirmed.
+The project's front-end is developed using *React 19 and TypeScript*, with TanStack Start and TanStack Router for application structure and routing.
+
+The main technologies and tools used are:
+
+- *React:* building the user interface and components.
+- *TypeScript:* static typing and improved development safety.
+- *Tailwind CSS:* interface styling.
+- *Vite:* development environment and production builds.
+- *TanStack Start:* application framework and server functions.
+- *TanStack Router:* application routing.
+- *ESLint:* static code analysis and identification of potential issues.
+- *Prettier:* consistent code formatting.
+- *Vitest:* automated testing.
+
+*Installing dependencies:*
+
+bash
+npm install
+
+
+*Running the development environment:*
+
+bash
+npm run dev
+
+
+*Building for production:*
+
+bash
+npm run build
+
 
 ## CI/CD
 
-The project's automation process will be documented in this section.
+The project uses *GitHub Actions* to automate Continuous Integration (CI) processes.
 
-The pipeline is expected to use GitHub Actions to run automated checks, including build, code linting, and tests.
+The workflow runs automatically when:
 
-The configurations for running these checks on pull requests and updates to the `main` branch will be documented after the workflows are implemented.
+- A push is made to the main branch.
+- A Pull Request targeting the main branch is opened or updated.
 
-## Deployment
+The following steps are performed during execution:
 
-The application has a version available for preview:
+- *Dependency installation:* installs the required packages using npm ci.
+- *Lint:* checks for potential code issues and inconsistencies using npm run lint.
+- *Automated tests:* runs the tests using Vitest.
+- *Build:* checks whether the application can be compiled for production using npm run build.
 
-https://lost-found-senac.lovable.app/
-
-## Links
-
-- **Repository:** To be added.
-- **Application:** https://lost-found-senac.lovable.app/
-- **GitHub Board / Project:** To be defined.
+The automation configuration file is located at .github/workflows/ci.yml.
