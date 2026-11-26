@@ -4,6 +4,8 @@
 
 This document presents the Lost and Found project, developed as part of the Technical Course in Systems Development at Senac. The documentation will be maintained in both Portuguese and English, keeping both versions updated as the project evolves.
 
+# Live DEMO: https://lost-found-senac.lovable.app/
+
 ## Team
 
 - **Class:** TDS — mixed classes 6570, 6756, and 6863
@@ -56,7 +58,7 @@ Additional features may be documented as they are implemented.
 
 **Database:** PostgreSQL.
 
-*The frameworks, libraries, and specific versions will be detailed once the project's configuration has been confirmed.*
+_The frameworks, libraries, and specific versions will be detailed once the project's configuration has been confirmed._
 
 ## Folder Structure
 
@@ -79,7 +81,7 @@ The exact directory structure will be documented according to the organization a
 └── supabase/
 ```
 
-*This structure is an initial reference and should be adjusted to match the actual folders in the repository.*
+_This structure is an initial reference and should be adjusted to match the actual folders in the repository._
 
 ## How to Run
 
@@ -90,60 +92,57 @@ The exact directory structure will be documented according to the organization a
 - PostgreSQL.
 - Git.
 
-###  Back-end
+### Back-end
 
-The project's back-end uses *Supabase/Lovable Cloud* as its backend platform.
+The project's back-end uses _Supabase/Lovable Cloud_ as its backend platform.
 
 Supabase provides the following services:
 
-- *PostgreSQL:* database management and data storage.
-- *Authentication:* user authentication.
-- *Storage:* file and image storage.
-- *RPC Functions:* execution of database functions.
+- _PostgreSQL:_ database management and data storage.
+- _Authentication:_ user authentication.
+- _Storage:_ file and image storage.
+- _RPC Functions:_ execution of database functions.
 
 The application communicates directly with Supabase through the Supabase JavaScript client, performing operations on tables such as items, claims, lost_reports, and profiles.
 
-The project also uses *TanStack Start server functions*, including functionality for photo analysis.
+The project also uses _TanStack Start server functions_, including functionality for photo analysis.
 
 The database schema is defined in schema.sql.
 
 ### Front-end
 
-The project's front-end is developed using *React 19 and TypeScript*, with TanStack Start and TanStack Router for application structure and routing.
+The project's front-end is developed using _React 19 and TypeScript_, with TanStack Start and TanStack Router for application structure and routing.
 
 The main technologies and tools used are:
 
-- *React:* building the user interface and components.
-- *TypeScript:* static typing and improved development safety.
-- *Tailwind CSS:* interface styling.
-- *Vite:* development environment and production builds.
-- *TanStack Start:* application framework and server functions.
-- *TanStack Router:* application routing.
-- *ESLint:* static code analysis and identification of potential issues.
-- *Prettier:* consistent code formatting.
-- *Vitest:* automated testing.
+- _React:_ building the user interface and components.
+- _TypeScript:_ static typing and improved development safety.
+- _Tailwind CSS:_ interface styling.
+- _Vite:_ development environment and production builds.
+- _TanStack Start:_ application framework and server functions.
+- _TanStack Router:_ application routing.
+- _ESLint:_ static code analysis and identification of potential issues.
+- _Prettier:_ consistent code formatting.
+- _Vitest:_ automated testing.
 
-*Installing dependencies:*
+_Installing dependencies:_
 
 bash
 npm install
 
-
-*Running the development environment:*
+_Running the development environment:_
 
 bash
 npm run dev
 
-
-*Building for production:*
+_Building for production:_
 
 bash
 npm run build
 
-
 ## CI/CD
 
-The project uses *GitHub Actions* to automate Continuous Integration (CI) processes.
+The project uses _GitHub Actions_ to automate Continuous Integration (CI) processes.
 
 The workflow runs automatically when:
 
@@ -152,9 +151,9 @@ The workflow runs automatically when:
 
 The following steps are performed during execution:
 
-- *Dependency installation:* installs the required packages using npm ci.
-- *Lint:* checks for potential code issues and inconsistencies using npm run lint.
-- *Automated tests:* runs the tests using Vitest.
-- *Build:* checks whether the application can be compiled for production using npm run build.
+- _Dependency installation:_ installs the required packages using npm ci.
+- _Lint:_ checks for potential code issues and inconsistencies using npm run lint.
+- _Automated tests:_ runs the tests using Vitest.
+- _Build:_ checks whether the application can be compiled for production using npm run build.
 
 The automation configuration file is located at .github/workflows/ci.yml.

@@ -4,6 +4,8 @@
 
 Este documento apresenta o projeto Achados e Perdidos, desenvolvido como parte do curso Técnico em Desenvolvimento de Sistemas do Senac. A documentação será mantida em português e inglês, acompanhando a evolução do projeto.
 
+# Live DEMO: https://lost-found-senac.lovable.app/
+
 ## Equipe
 
 - **Turma:** TDS — turmas mistas 6570, 6756 e 6863
@@ -56,7 +58,7 @@ Outras funcionalidades poderão ser documentadas conforme forem implementadas.
 
 **Banco de dados:** PostgreSQL.
 
-*Os frameworks, bibliotecas e versões específicas serão detalhados após a confirmação das configurações do projeto.*
+_Os frameworks, bibliotecas e versões específicas serão detalhados após a confirmação das configurações do projeto._
 
 ## Estrutura de pastas
 
@@ -79,7 +81,7 @@ A estrutura exata de diretórios será documentada conforme a organização efet
 └── supabase/
 ```
 
-*Esta representação é uma referência inicial e deverá ser ajustada para corresponder às pastas reais do repositório.*
+_Esta representação é uma referência inicial e deverá ser ajustada para corresponder às pastas reais do repositório._
 
 ## Como rodar
 
