@@ -37,15 +37,4 @@ export default tseslint.config(
     },
   },
   eslintPluginPrettier,
-  {
-    files: ["src/**/*.js", "src/**/*.jsx", "src/app/**/*.tsx", "src/integrations/supabase/**/*.ts"],
-    languageOptions: {
-      parserOptions: { ecmaFeatures: { jsx: true } },
-      globals: globals.browser,
-    },
-    rules: {
-      "prettier/prettier": "off",
-      "@typescript-eslint/ban-ts-comment": "off",
-    },
-  },
 );

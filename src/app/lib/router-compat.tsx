@@ -11,10 +11,6 @@ import {
 export { Outlet };
 
 type NavOpts = { replace?: boolean | undefined; state?: Record<string, unknown> | undefined };
-type SearchParamsInit = ConstructorParameters<typeof URLSearchParams>[0];
-type SearchParamsValue =
-  | SearchParamsInit
-  | ((current: URLSearchParams) => SearchParamsInit);
 
 export function useNavigate() {
   const router = useRouter();
@@ -28,7 +24,7 @@ export function useNavigate() {
 
 export function useLocation() {
   const loc = useTsLocation();
-  return { pathname: loc.pathname, search: loc.searchStr, hash: loc.hash, state: loc.state };
+  return { pathname: loc.pathname, search: loc.searchStr, hash: loc.hash, state: loc.state as any };
 }
 
 export function useParams() {
@@ -39,7 +35,7 @@ export function useSearchParams() {
   const loc = useLocation();
   const navigate = useNavigate();
   const params = new URLSearchParams(loc.search);
-  const set = (next: SearchParamsValue, opts: NavOpts = {}) => {
+  const set = (next: any, opts: NavOpts = {}) => {
     const value = typeof next === "function" ? next(new URLSearchParams(loc.search)) : next;
     const qs = new URLSearchParams(value).toString();
     navigate(loc.pathname + (qs ? `?${qs}` : ""), opts);
@@ -54,7 +50,7 @@ type LinkProps = {
   children?: ReactNode;
   className?: string;
   onClick?: (e: MouseEvent<HTMLAnchorElement>) => void;
-  [key: string]: unknown;
+  [key: string]: any;
 };
 
 export function Link({ to, state, replace, onClick, ...rest }: LinkProps) {
@@ -73,13 +69,7 @@ export function Link({ to, state, replace, onClick, ...rest }: LinkProps) {
   );
 }
 
-type NavLinkProps = Omit<LinkProps, "children" | "className"> & {
-  end?: boolean;
-  className?: LinkProps["className"] | ((props: { isActive: boolean }) => string | undefined);
-  children?: ReactNode | ((props: { isActive: boolean }) => ReactNode);
-};
-
-export function NavLink({ to, end, className, children, ...rest }: NavLinkProps) {
+export function NavLink({ to, end, className, children, ...rest }: LinkProps & { end?: boolean }) {
   const { pathname } = useLocation();
   const isActive = end || to === "/" ? pathname === to : pathname === to || pathname.startsWith(to + "/");
   const cls = typeof className === "function" ? className({ isActive }) : className;
