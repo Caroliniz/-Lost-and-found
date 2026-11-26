@@ -92,28 +92,78 @@ A estrutura exata de diretórios será documentada conforme a organização efet
 
 ### Back-end
 
-Os comandos de instalação e execução serão adicionados após a confirmação da configuração do projeto.
+O back-end do projeto utiliza Supabase/Lovable Cloud como plataforma de serviços.
 
-### Front-end
+O Supabase fornece os seguintes recursos:
 
-Os comandos de instalação e execução serão adicionados após a confirmação das dependências e scripts utilizados.
+PostgreSQL: gerenciamento e armazenamento dos dados.
 
-## CI/CD
+Autenticação: gerenciamento da autenticação dos usuários.
 
-A automação do projeto será documentada nesta seção.
+Storage: armazenamento de arquivos e imagens.
 
-A pipeline deverá utilizar GitHub Actions para executar verificações automáticas, incluindo build, análise de código (lint) e testes.
+Funções RPC: execução de funções diretamente no banco de dados.
 
-As configurações de execução em pull requests e atualizações da branch `main` serão documentadas após a implementação dos workflows.
+A aplicação se comunica diretamente com o Supabase por meio do cliente JavaScript (Supabase JS), realizando operações em tabelas como items, claims, lost_reports e profiles.
 
-## Deploy
+O projeto também utiliza funções de servidor do TanStack Start, incluindo funcionalidades para análise de fotografias.
 
-A aplicação possui uma versão disponível para visualização:
+O esquema do banco de dados está definido no arquivo schema.sql.
 
-https://lost-found-senac.lovable.app/
+Front-end
 
-## Links
+O front-end do projeto é desenvolvido com React 19 e TypeScript, utilizando TanStack Start e TanStack Router para estruturar a aplicação e gerenciar as rotas.
 
-- **Repositório:** (https://github.com/Caroliniz/-Lost-and-found.git)
-- **Aplicação:** https://lost-found-senac.lovable.app/
-- **Board / projeto no GitHub:** -Lost-and-found
+As principais tecnologias e ferramentas utilizadas são:
+
+React: construção da interface e dos componentes.
+
+TypeScript: tipagem estática e maior segurança durante o desenvolvimento.
+
+Tailwind CSS: estilização da interface.
+
+Vite: execução do ambiente de desenvolvimento e compilação para produção.
+
+TanStack Start: estruturação da aplicação e gerenciamento das funções de servidor.
+
+TanStack Router: gerenciamento das rotas da aplicação.
+
+ESLint: análise estática e identificação de possíveis problemas no código.
+
+Prettier: padronização da formatação do código.
+
+Vitest: execução de testes automatizados.
+
+Instalação das dependências:
+
+npm install
+
+Execução em ambiente de desenvolvimento:
+
+npm run dev
+
+Build para produção:
+
+npm run build
+
+CI/CD
+
+O projeto utiliza GitHub Actions para automatizar processos de Integração Contínua (CI), realizando verificações automáticas no código.
+
+O workflow é executado automaticamente quando ocorre:
+
+Um push na branch main.
+
+A abertura ou atualização de um Pull Request direcionado à branch main.
+
+Durante a execução, são realizadas as seguintes etapas:
+
+Instalação das dependências: instala os pacotes necessários utilizando npm ci.
+
+Lint: verifica possíveis problemas e inconsistências no código com npm run lint.
+
+Testes automatizados: executa os testes utilizando Vitest.
+
+Build: verifica se a aplicação pode ser compilada para produção com npm run build.
+
+O arquivo de configuração da automação está localizado em .github/workflows/ci.yml.
