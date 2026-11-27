@@ -1,15 +1,17 @@
-// @ts-nocheck
-import { useState } from "react";
-import { Link, Navigate, useLocation, useNavigate } from "@/app/lib/router-compat";
+import { useState, type FormEvent } from "react";
+import type { AuthError } from "@supabase/supabase-js";
+import { Link, Navigate } from "@/app/lib/router-compat";
+import { useLocation, useNavigate } from "@/app/lib/router-hooks";
 import { MailCheck } from "lucide-react";
 import { supabase, authRedirectUrl, rememberNextPath } from "../lib/supabase";
-import { useAuth } from "../auth/AuthProvider";
+import { useAuth } from "../auth/auth-context";
 import AuthCard, { FormError } from "../components/AuthCard";
 import { Button, Field } from "../components/ui";
+import { getRedirectPath } from "../lib/router-utils";
 
 const EMAIL_RE = /^[^@\s]+@[^@\s]+\.[^@\s]+$/;
 
-function signUpError(error) {
+function signUpError(error: AuthError) {
   if (error.code === "weak_password")
     return "Senha fraca. Use pelo menos 8 caracteres, misturando letras e números.";
   if (error.code === "email_address_invalid")
@@ -24,24 +26,33 @@ export default function SignUp() {
   const { user, loading } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
-  const from = location.state?.from || "/minha-conta";
-  const [form, setForm] = useState({
+  const from = getRedirectPath(location.state, "/minha-conta");
+  type SignUpForm = {
+    fullName: string;
+    email: string;
+    phone: string;
+    password: string;
+    confirm: string;
+  };
+  type SignUpField = keyof SignUpForm;
+  const [form, setForm] = useState<SignUpForm>({
     fullName: "",
     email: "",
     phone: "",
     password: "",
     confirm: "",
   });
-  const [errors, setErrors] = useState({});
+  const [errors, setErrors] = useState<Partial<Record<SignUpField, string>>>({});
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const [sentTo, setSentTo] = useState("");
-  const set = (k, v) => setForm((f) => ({ ...f, [k]: v }));
+  const set = (key: SignUpField, value: string) =>
+    setForm((current) => ({ ...current, [key]: value }));
 
   if (!loading && user && !sentTo) return <Navigate to={from} replace />;
 
   function validate() {
-    const e = {};
+    const e: Partial<Record<SignUpField, string>> = {};
     if (form.fullName.trim().length < 2) e.fullName = "Informe seu nome.";
     if (!EMAIL_RE.test(form.email.trim())) e.email = "E-mail inválido.";
     const phone = form.phone.replace(/\D/g, "");
@@ -53,7 +64,7 @@ export default function SignUp() {
     return !Object.keys(e).length;
   }
 
-  async function submit(e) {
+  async function submit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setError("");
     if (!validate()) return;

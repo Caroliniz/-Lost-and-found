@@ -1,7 +1,7 @@
-// @ts-nocheck
 import { useState } from "react";
-import { Link, Navigate, useSearchParams } from "@/app/lib/router-compat";
-import { useAuth } from "../auth/AuthProvider";
+import { Link, Navigate } from "@/app/lib/router-compat";
+import { useSearchParams } from "@/app/lib/router-hooks";
+import { useAuth } from "../auth/auth-context";
 import { takeNextPath } from "../lib/supabase";
 import AuthCard from "../components/AuthCard";
 import { Spinner } from "../components/ui";

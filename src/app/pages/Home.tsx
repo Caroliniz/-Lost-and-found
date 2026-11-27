@@ -1,6 +1,6 @@
-// @ts-nocheck
 import { useState } from "react";
-import { Link, useNavigate } from "@/app/lib/router-compat";
+import { Link } from "@/app/lib/router-compat";
+import { useNavigate } from "@/app/lib/router-hooks";
 import useSWR from "swr";
 import {
   Search,
@@ -14,8 +14,10 @@ import {
 } from "lucide-react";
 import { listPublicItems, getStats } from "../data/api";
 import { CATEGORIES } from "../data/constants";
-import { ItemCard, CATEGORY_ICONS } from "../components/ItemBits";
+import { ItemCard } from "../components/ItemBits";
+import { CATEGORY_ICONS } from "../components/itemConstants";
 import { Spinner } from "../components/ui";
+import type { FormEvent } from "react";
 
 const ACTIONS = [
   {
@@ -64,7 +66,7 @@ export default function Home() {
   const { data: stats } = useSWR(["public", "stats"], getStats);
   const items = allItems?.slice(0, 6) ?? null;
 
-  const submit = (e) => {
+  const submit = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     navigate(`/procurar${q.trim() ? `?q=${encodeURIComponent(q.trim())}` : ""}`);
   };
@@ -112,7 +114,7 @@ export default function Home() {
           </form>
           <div className="rise mt-5 flex flex-wrap gap-2" style={{ animationDelay: "240ms" }}>
             {CATEGORIES.slice(0, 6).map((c) => {
-              const Icon = CATEGORY_ICONS[c.id];
+              const Icon = CATEGORY_ICONS[c.id] ?? PackageSearch;
               return (
                 <Link
                   key={c.id}

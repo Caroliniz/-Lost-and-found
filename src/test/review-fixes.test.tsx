@@ -20,17 +20,19 @@ vi.mock("@/app/lib/supabase", () => ({
 vi.mock("swr", () => ({ useSWRConfig: () => ({ mutate: mocks.mutate }) }));
 vi.mock("@/app/components/ui", async (orig) => ({
   ...(await orig<object>()),
-  useToast: () => mocks.toast,
 }));
-vi.mock("@/app/auth/AuthProvider", () => ({ useAuth: () => mocks.auth }));
+vi.mock("@/app/components/toast-context", () => ({ useToast: () => mocks.toast }));
+vi.mock("@/app/auth/auth-context", () => ({ useAuth: () => mocks.auth }));
 vi.mock("@/app/lib/router-compat", () => ({
-  useLocation: () => ({ pathname: "/minha-conta", search: "" }),
   Navigate: () => null,
   Link: (p: { children?: unknown }) => p.children,
 }));
+vi.mock("@/app/lib/router-hooks", () => ({
+  useLocation: () => ({ pathname: "/minha-conta", search: "" }),
+}));
 
 import { fetchAllRows, createLostReport } from "@/app/data/api";
-import { mergeSuggestion } from "@/app/components/forms";
+import { mergeSuggestion } from "@/app/components/form-utils";
 import { useAction } from "@/app/components/admin/useAction";
 import RequireAuth from "@/app/auth/RequireAuth";
 
@@ -73,7 +75,16 @@ describe("review fixes", () => {
           },
     );
     await expect(
-      createLostReport({ name: "Chave", dateLost: "2026-11-01", description: "Chave prateada" }),
+      createLostReport({
+        name: "Chave",
+        category: "chaves",
+        color: "prata",
+        location: "Biblioteca",
+        dateLost: "2026-11-01",
+        description: "Chave prateada",
+        contactEmail: "",
+        contactPhone: "",
+      }),
     ).resolves.toMatchObject({ ref: "PRD-1", matches: [], matchesError: true });
   });
 

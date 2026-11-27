@@ -1,4 +1,3 @@
-// @ts-nocheck
 import { useState } from "react";
 import { Boxes, Eye, EyeOff } from "lucide-react";
 import { updateItem } from "../../data/api";
@@ -7,8 +6,15 @@ import { formatDate, normalize } from "../../lib/format";
 import { ItemThumb, StatusBadge } from "../ItemBits";
 import { EmptyState } from "../ui";
 import { useAction } from "./useAction";
+import type { AdminOverview } from "../../data/types";
 
-export default function ItemsPanel({ data, refresh }) {
+export default function ItemsPanel({
+  data,
+  refresh,
+}: {
+  data: AdminOverview;
+  refresh: () => Promise<unknown>;
+}) {
   const [q, setQ] = useState("");
   const { busy, run } = useAction(refresh);
   const term = normalize(q);

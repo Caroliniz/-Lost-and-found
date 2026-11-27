@@ -1,5 +1,14 @@
-// @ts-nocheck
-export default function AuthCard({ eyebrow, title, subtitle, children, footer }) {
+import type { ReactNode } from "react";
+
+type AuthCardProps = {
+  eyebrow: string;
+  title: string;
+  subtitle?: string;
+  children: ReactNode;
+  footer?: ReactNode;
+};
+
+export default function AuthCard({ eyebrow, title, subtitle, children, footer }: AuthCardProps) {
   return (
     <div className="mx-auto flex max-w-md flex-col px-4 py-12 sm:py-16">
       <div className="card rise p-6 sm:p-8">
@@ -13,7 +22,7 @@ export default function AuthCard({ eyebrow, title, subtitle, children, footer })
   );
 }
 
-export function FormError({ children }) {
+export function FormError({ children }: { children?: ReactNode }) {
   if (!children) return null;
   return (
     <p

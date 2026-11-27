@@ -1,4 +1,3 @@
-// @ts-nocheck
 import { Link } from "@/app/lib/router-compat";
 import {
   Smartphone,
@@ -16,26 +15,17 @@ import {
 } from "lucide-react";
 import { categoryLabel, colorOf, STATUS } from "../data/constants";
 import { formatDate, relativeDays } from "../lib/format";
+import type { CSSProperties } from "react";
+import type { Item } from "../data/types";
+import { CATEGORY_ICONS } from "./itemConstants";
 
-export const CATEGORY_ICONS = {
-  eletronicos: Smartphone,
-  documentos: IdCard,
-  chaves: KeyRound,
-  garrafas: CupSoda,
-  roupas: Shirt,
-  bolsas: Backpack,
-  material: NotebookPen,
-  acessorios: Glasses,
-  outros: Package,
-};
-
-const STATUS_STYLE = {
+const STATUS_STYLE: Record<string, string> = {
   [STATUS.ENCONTRADO]: "bg-flame-100 text-flame-600",
   [STATUS.AGUARDANDO]: "bg-navy-100 text-navy-800",
   [STATUS.DEVOLVIDO]: "bg-emerald-100 text-emerald-800",
 };
 
-export function StatusBadge({ status }) {
+export function StatusBadge({ status }: { status: string }) {
   return (
     <span className={`chip ${STATUS_STYLE[status] ?? "bg-navy-50 text-navy-800"}`}>
       <span className="size-1.5 rounded-full bg-current" />
@@ -44,7 +34,7 @@ export function StatusBadge({ status }) {
   );
 }
 
-export function ColorDot({ color, withLabel }) {
+export function ColorDot({ color, withLabel = false }: { color: string; withLabel?: boolean }) {
   const c = colorOf(color);
   if (!c) return null;
   return (
@@ -55,7 +45,7 @@ export function ColorDot({ color, withLabel }) {
   );
 }
 
-export function ItemThumb({ item, className = "" }) {
+export function ItemThumb({ item, className = "" }: { item: Item; className?: string }) {
   const Icon = CATEGORY_ICONS[item.category] ?? Package;
   if (item.photo)
     return (
@@ -86,7 +76,7 @@ export function ItemThumb({ item, className = "" }) {
   );
 }
 
-export function ItemCard({ item, style }) {
+export function ItemCard({ item, style }: { item: Item; style?: CSSProperties | undefined }) {
   return (
     <Link
       to={`/objeto/${item.id}`}

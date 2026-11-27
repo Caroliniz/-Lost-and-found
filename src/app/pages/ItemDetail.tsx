@@ -1,36 +1,48 @@
-// @ts-nocheck
-import { useState } from "react";
-import { Link, useLocation, useParams } from "@/app/lib/router-compat";
+import { useState, type FormEvent } from "react";
+import { Link } from "@/app/lib/router-compat";
+import { useLocation, useParams } from "@/app/lib/router-hooks";
 import useSWR, { useSWRConfig } from "swr";
 import { ArrowLeft, MapPin, Calendar, Tag, HandHeart, PackageX, ShieldCheck } from "lucide-react";
 import { getPublicItem, createClaim } from "../data/api";
 import { categoryLabel, STATUS } from "../data/constants";
 import { formatDate, relativeDays } from "../lib/format";
-import { useAuth } from "../auth/AuthProvider";
+import { useAuth } from "../auth/auth-context";
 import { ItemThumb, StatusBadge, ColorDot } from "../components/ItemBits";
-import { validateContact } from "../components/forms";
+import { validateContact } from "../components/form-utils";
 import { FormError } from "../components/AuthCard";
-import { Button, EmptyState, Field, Modal, Spinner, useToast } from "../components/ui";
+import { Button, EmptyState, Field, Modal, Spinner } from "../components/ui";
+import { useToast } from "../components/toast-context";
+import type { Item } from "../data/types";
+import { errorMessage } from "../lib/errorMessage";
 
-function ClaimForm({ item, onDone }) {
+type ClaimFormValues = {
+  name: string;
+  contactEmail: string;
+  contactPhone: string;
+  proof: string;
+};
+type ClaimFormErrors = Partial<Record<keyof ClaimFormValues, string>>;
+
+function ClaimForm({ item, onDone }: { item: Item; onDone: () => void }) {
   const { user, profile } = useAuth();
   const toast = useToast();
   const { mutate } = useSWRConfig();
-  const [form, setForm] = useState({
+  const [form, setForm] = useState<ClaimFormValues>({
     name: profile?.fullName || "",
     contactEmail: user?.email || "",
     contactPhone: profile?.phone || "",
     proof: "",
   });
-  const [errors, setErrors] = useState({});
+  const [errors, setErrors] = useState<ClaimFormErrors>({});
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
-  const set = (k, v) => setForm((f) => ({ ...f, [k]: v }));
+  const set = (key: keyof ClaimFormValues, value: string) =>
+    setForm((current) => ({ ...current, [key]: value }));
 
-  async function submit(e) {
+  async function submit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setError("");
-    const errs = validateContact(form);
+    const errs: ClaimFormErrors = { ...validateContact(form) };
     if (form.name.trim().length < 2) errs.name = "Informe seu nome.";
     const proof = form.proof.trim();
     if (proof.length < 10) errs.proof = "Descreva com pelo menos 10 caracteres.";
@@ -39,11 +51,11 @@ function ClaimForm({ item, onDone }) {
     setBusy(true);
     try {
       const claim = await createClaim(item.id, form);
-      mutate(["my-claims", user.id]);
+      if (user) mutate(["my-claims", user.id]);
       toast(`Solicitação ${claim.ref} enviada para análise.`);
       onDone();
     } catch (err) {
-      setError(err.message);
+      setError(errorMessage(err, "Não foi possível enviar a solicitação."));
     } finally {
       setBusy(false);
     }
@@ -108,7 +120,13 @@ export default function ItemDetail() {
   const location = useLocation();
   const { user } = useAuth();
   const [open, setOpen] = useState(false);
-  const { data: item, error, isLoading } = useSWR(["public", "item", id], () => getPublicItem(id));
+  const {
+    data: item,
+    error,
+    isLoading,
+  } = useSWR(id ? ["public", "item", id] : null, () =>
+    id ? getPublicItem(id) : Promise.resolve(null),
+  );
 
   if (isLoading) return <Spinner label="Carregando objeto…" />;
   if (error || !item) {

@@ -1,15 +1,14 @@
-// @ts-nocheck
 // AI photo analysis (Lovable AI vision) by default; local pixel-color fallback only on failure/timeout.
 import { analyzePhoto } from "@/app/ai/photo.functions";
 import { analyzeLocally } from "./imageTools";
 
 const AI_TIMEOUT_MS = 20000;
 
-export async function analyzePhotoSmart(dataUrl, fileName = "") {
+export async function analyzePhotoSmart(dataUrl: string, fileName = "") {
   try {
     const res = await Promise.race([
       analyzePhoto({ data: { dataUrl } }),
-      new Promise((_, rej) => setTimeout(() => rej(new Error("timeout")), AI_TIMEOUT_MS)),
+      new Promise<never>((_, rej) => setTimeout(() => rej(new Error("timeout")), AI_TIMEOUT_MS)),
     ]);
     if (!res?.ok) throw new Error("ai unavailable");
     const a = res.analysis;

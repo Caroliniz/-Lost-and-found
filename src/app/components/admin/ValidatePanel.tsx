@@ -1,21 +1,22 @@
-// @ts-nocheck
 import { useRef, useState } from "react";
 import { useSWRConfig } from "swr";
 import { CircleCheck } from "lucide-react";
 import { validatePickupCode } from "../../data/api";
 import { FormError } from "../AuthCard";
 import { Button, Field } from "../ui";
+import type { PickupCodeResult } from "../../data/types";
+import type { FormEvent } from "react";
 
-export default function ValidatePanel({ refresh }) {
+export default function ValidatePanel({ refresh }: { refresh: () => Promise<unknown> }) {
   const [code, setCode] = useState("");
-  const [result, setResult] = useState(null);
+  const [result, setResult] = useState<PickupCodeResult | null>(null);
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
   const submitting = useRef(false);
   const { mutate } = useSWRConfig();
   const [refreshError, setRefreshError] = useState("");
 
-  async function submit(e) {
+  async function submit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
     if (submitting.current) return;
     submitting.current = true;

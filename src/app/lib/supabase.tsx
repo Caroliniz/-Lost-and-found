@@ -1,4 +1,3 @@
-// @ts-nocheck
 import { supabase } from "@/integrations/supabase/client";
 export { supabase };
 export const isSupabaseConfigured = true;
@@ -8,7 +7,7 @@ export const PHOTO_BUCKET = "item-photos";
 export const authRedirectUrl = () => `${window.location.origin}/auth/callback`;
 
 const NEXT_KEY = "auth:next";
-export const rememberNextPath = (path) => {
+export const rememberNextPath = (path: string) => {
   try {
     localStorage.setItem(NEXT_KEY, path);
   } catch {

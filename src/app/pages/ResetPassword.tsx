@@ -1,10 +1,11 @@
-// @ts-nocheck
-import { useState } from "react";
-import { Link, useNavigate } from "@/app/lib/router-compat";
+import { useState, type FormEvent } from "react";
+import { Link } from "@/app/lib/router-compat";
+import { useNavigate } from "@/app/lib/router-hooks";
 import { supabase } from "../lib/supabase";
-import { useAuth } from "../auth/AuthProvider";
+import { useAuth } from "../auth/auth-context";
 import AuthCard, { FormError } from "../components/AuthCard";
-import { Button, Field, Spinner, useToast } from "../components/ui";
+import { Button, Field, Spinner } from "../components/ui";
+import { useToast } from "../components/toast-context";
 
 export default function ResetPassword() {
   const { user, loading, clearRecovery } = useAuth();
@@ -32,7 +33,7 @@ export default function ResetPassword() {
     );
   }
 
-  async function submit(e) {
+  async function submit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setError("");
     if (password.length < 8) return setError("Use pelo menos 8 caracteres.");

@@ -1,5 +1,4 @@
-// @ts-nocheck
-import { useState } from "react";
+import { useState, type FormEvent } from "react";
 import { Link } from "@/app/lib/router-compat";
 import { supabase, authRedirectUrl, rememberNextPath } from "../lib/supabase";
 import AuthCard, { FormError } from "../components/AuthCard";
@@ -11,7 +10,7 @@ export default function ForgotPassword() {
   const [sent, setSent] = useState(false);
   const [error, setError] = useState("");
 
-  async function submit(e) {
+  async function submit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setError("");
     setBusy(true);

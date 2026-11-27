@@ -1,20 +1,30 @@
-// @ts-nocheck
-import { useState } from "react";
+import { useState, type FormEvent } from "react";
 import { Link } from "@/app/lib/router-compat";
 import { useSWRConfig } from "swr";
 import { ClipboardCheck, Sparkles } from "lucide-react";
 import { createLostReport } from "../data/api";
-import { useAuth } from "../auth/AuthProvider";
+import { useAuth } from "../auth/auth-context";
+import { ItemFields, PhotoPicker } from "../components/forms";
 import {
-  ItemFields,
-  PhotoPicker,
-  validateItemFields,
-  validateContact,
   todayISO,
-} from "../components/forms";
+  validateContact,
+  validateItemFields,
+  type FieldErrors,
+  type ItemFormValues,
+} from "../components/form-utils";
 import { ItemCard } from "../components/ItemBits";
 import { FormError } from "../components/AuthCard";
-import { Button, Field, useToast } from "../components/ui";
+import { Button, Field } from "../components/ui";
+import { useToast } from "../components/toast-context";
+import { errorMessage } from "../lib/errorMessage";
+import type { CreateLostReportResult } from "../data/types";
+
+type LostFormValues = ItemFormValues & {
+  dateLost: string;
+  photo: string | null;
+  contactEmail: string;
+  contactPhone: string;
+};
 
 export default function ReportLost() {
   const { user, profile } = useAuth();
@@ -31,14 +41,15 @@ export default function ReportLost() {
     contactEmail: user?.email || "",
     contactPhone: profile?.phone || "",
   });
-  const [values, setValues] = useState(blank);
-  const [errors, setErrors] = useState({});
+  const [values, setValues] = useState<LostFormValues>(blank());
+  const [errors, setErrors] = useState<FieldErrors>({});
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
-  const [result, setResult] = useState(null);
-  const set = (k, v) => setValues((s) => ({ ...s, [k]: v }));
+  const [result, setResult] = useState<CreateLostReportResult | null>(null);
+  const set = (key: keyof LostFormValues, value: string | boolean | null) =>
+    setValues((current) => ({ ...current, [key]: value }));
 
-  async function submit(e) {
+  async function submit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setError("");
     const errs = { ...validateItemFields(values, "dateLost"), ...validateContact(values) };
@@ -47,12 +58,12 @@ export default function ReportLost() {
     setBusy(true);
     try {
       const res = await createLostReport(values);
-      mutate(["my-reports", user.id]);
+      if (user) mutate(["my-reports", user.id]);
       mutate(["public", "stats"]);
       toast(`Relato ${res.ref} registrado.`);
       setResult(res);
     } catch (err) {
-      setError(err.message);
+      setError(errorMessage(err, "Não foi possível registrar o relato."));
     } finally {
       setBusy(false);
     }
@@ -140,7 +151,7 @@ export default function ReportLost() {
           descriptionHint="Quanto mais detalhes, melhores as sugestões. Esses dados ficam visíveis só para você e a recepção."
         />
         <PhotoPicker
-          value={values.photo}
+          value={values.photo ?? null}
           onChange={(p) => set("photo", p)}
           hint="Uma foto antiga do objeto ajuda a recepção a reconhecê-lo."
         />

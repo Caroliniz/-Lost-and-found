@@ -1,16 +1,15 @@
-// @ts-nocheck
 import { Link } from "@/app/lib/router-compat";
 import useSWR from "swr";
 import { HandHeart } from "lucide-react";
 import { listMyFoundItems } from "../../data/api";
 import { formatDate } from "../../lib/format";
-import { useAuth } from "../../auth/AuthProvider";
+import { useAuth } from "../../auth/auth-context";
 import { ItemThumb, StatusBadge } from "../ItemBits";
 import { EmptyState, Spinner } from "../ui";
 
 export default function MyFoundItems() {
   const { user } = useAuth();
-  const { data, error, isLoading } = useSWR(["my-items", user.id], listMyFoundItems);
+  const { data, error, isLoading } = useSWR(user ? ["my-items", user.id] : null, listMyFoundItems);
 
   if (isLoading) return <Spinner />;
   if (error)
@@ -19,6 +18,7 @@ export default function MyFoundItems() {
         {error.message}
       </EmptyState>
     );
+  if (!data) return <Spinner />;
   if (!data.length) {
     return (
       <EmptyState icon={HandHeart} title="Nenhum objeto registrado">

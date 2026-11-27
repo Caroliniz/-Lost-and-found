@@ -1,52 +1,30 @@
-// @ts-nocheck
-import { useId, useState } from "react";
+import { useId, useState, type ChangeEvent } from "react";
 import { ImagePlus, LoaderCircle, Trash2, Sparkles } from "lucide-react";
 import { CATEGORIES, COLORS, LOCATIONS } from "../data/constants";
 import { reencodeImage } from "../lib/imageTools";
 import { analyzePhotoSmart } from "../lib/analyzePhoto";
 import { Field } from "./ui";
+import { todayISO, type ItemFormValues, type FieldErrors, type PhotoAnalysis } from "./form-utils";
 
-export const todayISO = () => new Date().toLocaleDateString("sv-SE");
+type DateKey = "dateFound" | "dateLost";
 
-/** Aplica só sugestões definidas, sem apagar escolhas já feitas. */
-export function mergeSuggestion(values, analysis) {
-  return {
-    ...values,
-    color: analysis?.color || values.color,
-    category:
-      analysis?.category && analysis.category !== "outros" ? analysis.category : values.category,
-    sensitive: values.sensitive || !!analysis?.sensitiveWarning,
-  };
-}
-const EMAIL_RE = /^[^@\s]+@[^@\s]+\.[^@\s]+$/;
+type ItemFieldsProps = {
+  values: ItemFormValues;
+  errors: FieldErrors;
+  set: (key: keyof ItemFormValues, value: string | boolean | null) => void;
+  dateKey: DateKey;
+  dateLabel: string;
+  descriptionHint?: string;
+};
 
-export function validateItemFields(v, dateKey) {
-  const e = {};
-  if (!v.name || v.name.trim().length < 2) e.name = "Informe um nome com pelo menos 2 letras.";
-  else if (v.name.trim().length > 80) e.name = "Use no máximo 80 caracteres.";
-  if (!v.category) e.category = "Escolha uma categoria.";
-  if (!v.color) e.color = "Escolha a cor principal.";
-  if (!v.location) e.location = "Escolha o local.";
-  if (!v[dateKey]) e[dateKey] = "Informe a data.";
-  else if (v[dateKey] > todayISO()) e[dateKey] = "A data não pode estar no futuro.";
-  const d = (v.description || "").trim();
-  if (d.length < 10) e.description = "Descreva com pelo menos 10 caracteres.";
-  else if (d.length > 600) e.description = "Use no máximo 600 caracteres.";
-  return e;
-}
-
-export function validateContact({ contactEmail, contactPhone }) {
-  const e = {};
-  const email = (contactEmail || "").trim();
-  const phone = (contactPhone || "").replace(/\D/g, "");
-  if (!email && !phone) e.contactEmail = "Informe pelo menos um contato.";
-  if (email && !EMAIL_RE.test(email)) e.contactEmail = "E-mail inválido.";
-  if (phone && (phone.length < 10 || phone.length > 11))
-    e.contactPhone = "Use DDD + número (10 ou 11 dígitos).";
-  return e;
-}
-
-export function ItemFields({ values, errors, set, dateKey, dateLabel, descriptionHint }) {
+export function ItemFields({
+  values,
+  errors,
+  set,
+  dateKey,
+  dateLabel,
+  descriptionHint,
+}: ItemFieldsProps) {
   return (
     <div className="grid gap-4 sm:grid-cols-2">
       <div className="sm:col-span-2">
@@ -132,12 +110,19 @@ export function ItemFields({ values, errors, set, dateKey, dateLabel, descriptio
   );
 }
 
-export function PhotoPicker({ value, onChange, onAnalyzed, hint }) {
+type PhotoPickerProps = {
+  value: string | null;
+  onChange: (value: string | null) => void;
+  onAnalyzed?: (analysis: PhotoAnalysis) => void;
+  hint?: string;
+};
+
+export function PhotoPicker({ value, onChange, onAnalyzed, hint }: PhotoPickerProps) {
   const id = useId();
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
 
-  async function handleFile(e) {
+  async function handleFile(e: ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
     e.target.value = "";
     if (!file) return;
@@ -154,7 +139,7 @@ export function PhotoPicker({ value, onChange, onAnalyzed, hint }) {
         }
       }
     } catch (err) {
-      setError(err.message);
+      setError(err instanceof Error ? err.message : "Não foi possível processar a imagem.");
     } finally {
       setBusy(false);
     }
@@ -212,7 +197,13 @@ export function PhotoPicker({ value, onChange, onAnalyzed, hint }) {
   );
 }
 
-export function SuggestionBox({ analysis, onApply }) {
+export function SuggestionBox({
+  analysis,
+  onApply,
+}: {
+  analysis: PhotoAnalysis | null;
+  onApply: () => void;
+}) {
   if (!analysis) return null;
   return (
     <div className="rounded-2xl border border-flame-100 bg-flame-50 p-4 text-sm">

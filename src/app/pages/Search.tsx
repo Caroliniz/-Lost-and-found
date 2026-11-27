@@ -1,6 +1,6 @@
-// @ts-nocheck
-import { useEffect, useState } from "react";
-import { Link, useSearchParams } from "@/app/lib/router-compat";
+import { useEffect, useState, type ChangeEvent } from "react";
+import { Link } from "@/app/lib/router-compat";
+import { useSearchParams } from "@/app/lib/router-hooks";
 import useSWR from "swr";
 import {
   Search as SearchIcon,
@@ -26,17 +26,33 @@ const PARAMS = {
   to: "ate",
 };
 
+type FilterKey = keyof typeof PARAMS;
+type SearchFilters = Record<FilterKey, string>;
+type PhotoInfo = {
+  preview?: string;
+  error?: string;
+  category?: string;
+  color?: string;
+  marks?: string[];
+  source?: string;
+};
+
 export default function Search() {
   const [params, setParams] = useSearchParams();
-  const filters = Object.fromEntries(
-    Object.entries(PARAMS).map(([k, p]) => [k, params.get(p) || ""]),
-  );
+  const filters: SearchFilters = {
+    q: params.get(PARAMS.q) || "",
+    category: params.get(PARAMS.category) || "",
+    color: params.get(PARAMS.color) || "",
+    location: params.get(PARAMS.location) || "",
+    from: params.get(PARAMS.from) || "",
+    to: params.get(PARAMS.to) || "",
+  };
   const [text, setText] = useState(filters.q);
   const [showFilters, setShowFilters] = useState(false);
   const [photoBusy, setPhotoBusy] = useState(false);
-  const [photoInfo, setPhotoInfo] = useState(null);
+  const [photoInfo, setPhotoInfo] = useState<PhotoInfo | null>(null);
 
-  async function searchByPhoto(e) {
+  async function searchByPhoto(e: ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
     e.target.value = "";
     if (!file) return;
@@ -52,15 +68,18 @@ export default function Search() {
       setParams(next, { replace: true });
       setPhotoInfo({ preview: dataUrl, ...a });
     } catch (err) {
-      setPhotoInfo({ error: err.message || "Não foi possível ler a foto." });
+      setPhotoInfo({
+        error: err instanceof Error ? err.message : "Não foi possível ler a foto.",
+      });
     } finally {
       setPhotoBusy(false);
     }
   }
 
-  const setFilter = (key, value) => {
+  const setFilter = (key: FilterKey, value: string) => {
     const next = new URLSearchParams(params);
-    value ? next.set(PARAMS[key], value) : next.delete(PARAMS[key]);
+    if (value) next.set(PARAMS[key], value);
+    else next.delete(PARAMS[key]);
     setParams(next, { replace: true });
   };
 
@@ -80,7 +99,7 @@ export default function Search() {
   const items = isLoading ? null : (data ?? null);
   const error = loadError ? "Não foi possível carregar os objetos. Tente novamente." : "";
 
-  const activeCount = ["category", "color", "location", "from", "to"].filter(
+  const activeCount = (["category", "color", "location", "from", "to"] as FilterKey[]).filter(
     (k) => filters[k],
   ).length;
   const clear = () => {

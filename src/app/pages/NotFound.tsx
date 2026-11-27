@@ -1,4 +1,3 @@
-// @ts-nocheck
 import { Link } from "@/app/lib/router-compat";
 import { PackageSearch } from "lucide-react";
 import { EmptyState } from "../components/ui";

@@ -1,11 +1,18 @@
-// @ts-nocheck
-import { Navigate, useLocation, Link } from "@/app/lib/router-compat";
+import { Navigate, Link } from "@/app/lib/router-compat";
+import { useLocation } from "@/app/lib/router-hooks";
 import { ShieldAlert } from "lucide-react";
-import { useAuth } from "./AuthProvider";
+import { useAuth } from "./auth-context";
 import { Spinner, EmptyState } from "../components/ui";
 import { Button } from "../components/ui";
+import type { ReactNode } from "react";
 
-export default function RequireAuth({ children, staff = false }) {
+export default function RequireAuth({
+  children,
+  staff = false,
+}: {
+  children: ReactNode;
+  staff?: boolean;
+}) {
   const { user, isStaff, loading, profileError, refreshProfile } = useAuth();
   const location = useLocation();
 

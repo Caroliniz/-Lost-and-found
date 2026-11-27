@@ -1,9 +1,9 @@
-// @ts-nocheck
 // Motor de correspondência entre relatos de perda e objetos encontrados.
 // Função pura, sem dependência do navegador — será reutilizada no servidor.
 // Nunca confirma posse: apenas sugere e explica a pontuação.
 import { normalize } from "./format";
 import { categoryLabel, colorOf } from "../data/constants";
+import type { Item, Report } from "../data/types";
 
 const STOPWORDS = new Set(
   "a o os as de da do das dos e em no na nos nas um uma com sem para por que meu minha perdi acho foi esta estava ele ela muito pouco tem lado parte cor".split(
@@ -11,7 +11,13 @@ const STOPWORDS = new Set(
   ),
 );
 
-export const tokens = (text) =>
+type LostItem = Pick<
+  Report,
+  "category" | "color" | "name" | "description" | "location" | "dateLost"
+>;
+type FoundItem = Item;
+
+export const tokens = (text: string) =>
   new Set(
     normalize(text)
       .split(/[^a-z0-9]+/)
@@ -20,7 +26,7 @@ export const tokens = (text) =>
 
 const NEUTRALS = ["preto", "cinza", "prata"];
 
-export function scoreMatch(lost, found) {
+export function scoreMatch(lost: LostItem, found: FoundItem) {
   const reasons = [];
   let score = 0;
 
@@ -54,7 +60,7 @@ export function scoreMatch(lost, found) {
     reasons.push(`Mesmo local (${found.location})`);
   }
 
-  const gap = (new Date(found.dateFound) - new Date(lost.dateLost)) / 86400000;
+  const gap = (new Date(found.dateFound).getTime() - new Date(lost.dateLost).getTime()) / 86400000;
   if (gap >= -1 && gap <= 3) {
     score += 10;
     reasons.push("Encontrado logo após a data da perda");
@@ -69,7 +75,11 @@ export function scoreMatch(lost, found) {
   return { score: Math.max(0, Math.min(100, score)), reasons };
 }
 
-export function findMatches(lost, foundItems, { min = 40, limit = 5 } = {}) {
+export function findMatches(
+  lost: LostItem,
+  foundItems: FoundItem[],
+  { min = 40, limit = 5 }: { min?: number; limit?: number } = {},
+) {
   return foundItems
     .filter((f) => f.status !== "Devolvido")
     .map((f) => ({ item: f, ...scoreMatch(lost, f) }))

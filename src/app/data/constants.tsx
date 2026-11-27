@@ -1,4 +1,3 @@
-// @ts-nocheck
 // Vocabulário compartilhado do domínio (reutilizado pela API nos próximos marcos).
 
 export const CATEGORIES = [
@@ -63,5 +62,5 @@ export const CLAIM_STATUS = {
 
 export const AUTO_HIDE_DAYS = 90;
 
-export const categoryLabel = (id) => CATEGORIES.find((c) => c.id === id)?.label ?? "Outros";
-export const colorOf = (id) => COLORS.find((c) => c.id === id);
+export const categoryLabel = (id: string) => CATEGORIES.find((c) => c.id === id)?.label ?? "Outros";
+export const colorOf = (id: string) => COLORS.find((c) => c.id === id);

@@ -1,4 +1,3 @@
-// @ts-nocheck
 // Camada de acesso a dados — Supabase.
 //
 // Todas as telas falam SOMENTE com estas funções. A segurança real está no
@@ -7,6 +6,17 @@ import { supabase, PHOTO_BUCKET } from "../lib/supabase";
 import { AUTO_HIDE_DAYS, STATUS } from "./constants";
 import { daysSince, maskEmail, maskPhone, normalize } from "../lib/format";
 import { findMatches } from "../lib/matching";
+import type { PostgrestError } from "@supabase/supabase-js";
+import type { Json } from "@/integrations/supabase/types";
+import type {
+  AdminOverview,
+  Claim,
+  CreateLostReportResult,
+  Item,
+  PickupCodeResult,
+  Profile,
+  Report,
+} from "./types";
 
 const SIGNED_URL_TTL = 60 * 60;
 const PAGE_SIZE = 1000;
@@ -23,7 +33,9 @@ const CLAIM_COLS =
   "id, ref, item_id, user_id, name, contact_email, contact_phone, proof, status, code_used, code_issued_at, decided_at, picked_up_at, created_at";
 
 // ---------- Utilidades ----------
-function friendlyMessage(error, fallback) {
+type ServiceError = { message: string; code?: string };
+
+function friendlyMessage(error: ServiceError | null, fallback: string): string {
   if (!error) return fallback;
   if (error.code === "P0001") return error.message; // mensagens das funções do banco
   if (error.code === "23505") return "Você já tem uma solicitação ativa para este objeto.";
@@ -31,7 +43,7 @@ function friendlyMessage(error, fallback) {
   if (error.code === "42501") return "Você não tem permissão para esta ação.";
   return fallback;
 }
-function check(error, fallback) {
+function check(error: ServiceError | null, fallback: string): void {
   if (error) throw new Error(friendlyMessage(error, fallback));
 }
 
@@ -42,8 +54,8 @@ async function requireUserId() {
   return id;
 }
 
-async function signPhotos(paths) {
-  const unique = [...new Set(paths.filter(Boolean))];
+async function signPhotos(paths: (string | null | undefined)[]): Promise<Record<string, string>> {
+  const unique = [...new Set(paths.filter((path): path is string => Boolean(path)))];
   if (!unique.length) return {};
   const batches = [];
   for (let i = 0; i < unique.length; i += SIGN_BATCH) batches.push(unique.slice(i, i + SIGN_BATCH));
@@ -58,7 +70,17 @@ async function signPhotos(paths) {
 }
 
 /** Lê todas as páginas de uma consulta, sem cortar resultados no limite por requisição. */
-export async function fetchAllRows(buildQuery, fallback) {
+export type RangeQuery<Row> = {
+  range(
+    from: number,
+    to: number,
+  ): PromiseLike<{ data?: Row[] | null | undefined; error: PostgrestError | null }>;
+};
+
+export async function fetchAllRows<Row>(
+  buildQuery: () => RangeQuery<Row>,
+  fallback: string,
+): Promise<Row[]> {
   const rows = [];
   for (let from = 0; ; from += PAGE_SIZE) {
     const { data, error } = await buildQuery().range(from, from + PAGE_SIZE - 1);
@@ -68,7 +90,7 @@ export async function fetchAllRows(buildQuery, fallback) {
   }
 }
 
-async function uploadPhoto(dataUrl) {
+async function uploadPhoto(dataUrl: string | null | undefined) {
   if (!dataUrl) return null;
   const userId = await requireUserId();
   const blob = await (await fetch(dataUrl)).blob();
@@ -80,34 +102,69 @@ async function uploadPhoto(dataUrl) {
   return path;
 }
 
-async function removePhoto(path) {
+async function removePhoto(path: string | null | undefined) {
   if (path) await supabase.storage.from(PHOTO_BUCKET).remove([path]);
 }
 
-const cleanText = (s) => (s || "").trim();
-const cleanPhone = (s) => (s || "").replace(/\D/g, "");
+const cleanText = (s: string | null | undefined) => (s || "").trim();
+const cleanPhone = (s: string | null | undefined) => (s || "").replace(/\D/g, "");
 
-function toItem(row, urls = {}) {
+type ItemRow = {
+  id: string | null;
+  ref: string | null;
+  name: string | null;
+  category: string | null;
+  color: string | null;
+  location: string | null;
+  date_found: string | null;
+  description: string | null;
+  marks: string[] | null;
+  status: string | null;
+  sensitive?: boolean | null;
+  hidden?: boolean | null;
+  photo_path: string | null;
+  photo_hidden?: boolean | null;
+  created_at: string | null;
+};
+
+function toItem(row: ItemRow, urls: Record<string, string> = {}): Item {
   return {
-    id: row.id,
-    ref: row.ref,
-    name: row.name,
-    category: row.category,
-    color: row.color,
-    location: row.location,
-    dateFound: row.date_found,
-    description: row.description,
+    id: row.id ?? "",
+    ref: row.ref ?? "",
+    name: row.name ?? "",
+    category: row.category ?? "",
+    color: row.color ?? "",
+    location: row.location ?? "",
+    dateFound: row.date_found ?? "",
+    description: row.description ?? "",
     marks: row.marks || [],
-    status: row.status,
+    status: row.status ?? "",
     sensitive: !!row.sensitive,
     hidden: !!row.hidden,
     photo: row.photo_path ? (urls[row.photo_path] ?? null) : null,
     photoHidden: !!row.photo_hidden,
-    createdAt: row.created_at,
+    createdAt: row.created_at ?? "",
   };
 }
 
-function toReport(row, urls = {}) {
+type ReportRow = {
+  id: string;
+  ref: string;
+  user_id?: string;
+  name: string;
+  category: string;
+  color: string;
+  location: string;
+  date_lost: string;
+  description: string;
+  contact_email: string;
+  contact_phone: string;
+  photo_path: string | null;
+  is_open: boolean;
+  created_at: string;
+};
+
+function toReport(row: ReportRow, urls: Record<string, string> = {}): Report {
   return {
     id: row.id,
     ref: row.ref,
@@ -133,7 +190,14 @@ export async function listPublicItems({
   location = "",
   from = "",
   to = "",
-} = {}) {
+}: {
+  q?: string;
+  category?: string;
+  color?: string;
+  location?: string;
+  from?: string;
+  to?: string;
+} = {}): Promise<Item[]> {
   const data = await fetchAllRows(() => {
     let query = supabase
       .from("public_items")
@@ -162,7 +226,7 @@ export async function listPublicItems({
   return rows.map((r) => toItem(r, urls));
 }
 
-export async function getPublicItem(id) {
+export async function getPublicItem(id: string): Promise<Item | null> {
   if (!UUID_RE.test(id || "")) return null;
   const { data, error } = await supabase
     .from("public_items")
@@ -175,14 +239,45 @@ export async function getPublicItem(id) {
   return toItem(data, urls);
 }
 
-export async function getStats() {
+export async function getStats(): Promise<{
+  available: number;
+  awaiting: number;
+  returned: number;
+  openReports: number;
+}> {
   const { data, error } = await supabase.rpc("get_public_stats");
   check(error, "Não foi possível carregar os números.");
-  return data;
+  if (
+    !data ||
+    typeof data !== "object" ||
+    Array.isArray(data) ||
+    typeof data["available"] !== "number" ||
+    typeof data["awaiting"] !== "number" ||
+    typeof data["returned"] !== "number" ||
+    typeof data["openReports"] !== "number"
+  ) {
+    throw new Error("Os números retornados pelo banco são inválidos.");
+  }
+  return {
+    available: data["available"],
+    awaiting: data["awaiting"],
+    returned: data["returned"],
+    openReports: data["openReports"],
+  };
 }
 
 // ---------- Usuário autenticado ----------
-export async function createFoundItem(data) {
+export async function createFoundItem(data: {
+  name: string;
+  category: string;
+  color: string;
+  location: string;
+  dateFound: string;
+  description: string;
+  marks?: string[];
+  sensitive?: boolean;
+  photo?: string | null;
+}) {
   const photoPath = await uploadPhoto(data.photo);
   const { data: row, error } = await supabase
     .from("items")
@@ -201,10 +296,21 @@ export async function createFoundItem(data) {
     .single();
   if (error) await removePhoto(photoPath);
   check(error, "Não foi possível registrar o objeto.");
+  if (!row) throw new Error("O objeto foi salvo, mas não foi possível confirmar o protocolo.");
   return row;
 }
 
-export async function createLostReport(data) {
+export async function createLostReport(data: {
+  name: string;
+  category: string;
+  color: string;
+  location: string;
+  dateLost: string;
+  description: string;
+  contactEmail: string;
+  contactPhone: string;
+  photo?: string | null;
+}): Promise<CreateLostReportResult> {
   const photoPath = await uploadPhoto(data.photo);
   const payload = {
     name: cleanText(data.name),
@@ -224,6 +330,7 @@ export async function createLostReport(data) {
     .single();
   if (error) await removePhoto(photoPath);
   check(error, "Não foi possível registrar o relato.");
+  if (!row) throw new Error("O relato foi salvo, mas não foi possível confirmar o protocolo.");
 
   // O relato já foi salvo: falha nas sugestões não pode virar falha do cadastro.
   try {
@@ -235,7 +342,15 @@ export async function createLostReport(data) {
   }
 }
 
-export async function createClaim(itemId, { name, contactEmail, contactPhone, proof }) {
+export async function createClaim(
+  itemId: string,
+  {
+    name,
+    contactEmail,
+    contactPhone,
+    proof,
+  }: { name: string; contactEmail: string; contactPhone: string; proof: string },
+): Promise<{ id: string; ref: string }> {
   const { data, error } = await supabase
     .from("claims")
     .insert({
@@ -250,10 +365,12 @@ export async function createClaim(itemId, { name, contactEmail, contactPhone, pr
   if (error?.code === "42501")
     throw new Error("Este objeto não está mais disponível para solicitação.");
   check(error, "Não foi possível enviar a solicitação.");
+  if (!data)
+    throw new Error("A solicitação foi enviada, mas não foi possível confirmar o protocolo.");
   return data;
 }
 
-export async function getMyProfile(userId) {
+export async function getMyProfile(userId: string): Promise<Profile | null> {
   const { data, error } = await supabase
     .from("profiles")
     .select("id, full_name, phone")
@@ -267,7 +384,7 @@ export async function getMyProfile(userId) {
     : null;
 }
 
-export async function updateMyProfile({ fullName, phone }) {
+export async function updateMyProfile({ fullName, phone }: { fullName: string; phone: string }) {
   const userId = await requireUserId();
   const { error } = await supabase
     .from("profiles")
@@ -276,7 +393,7 @@ export async function updateMyProfile({ fullName, phone }) {
   check(error, "Não foi possível salvar seu perfil.");
 }
 
-export async function listMyClaims() {
+export async function listMyClaims(): Promise<Claim[]> {
   const data = await fetchAllRows(
     () => supabase.rpc("my_claims"),
     "Não foi possível carregar suas solicitações.",
@@ -299,13 +416,13 @@ export async function listMyClaims() {
   }));
 }
 
-export async function cancelMyClaim(claimId) {
+export async function cancelMyClaim(claimId: string) {
   const { error } = await supabase.from("claims").delete().eq("id", claimId);
   check(error, "Não foi possível cancelar a solicitação.");
 }
 
 /** Gera um novo código de retirada (invalida o anterior). O banco guarda só o hash. */
-export async function issuePickupCode(claimId) {
+export async function issuePickupCode(claimId: string) {
   const { data, error } = await supabase.rpc("issue_pickup_code", { p_claim_id: claimId });
   check(error, "Não foi possível gerar o código.");
   return data;
@@ -327,7 +444,7 @@ export async function listMyReports() {
   return data.map((r) => toReport(r, urls));
 }
 
-export async function setMyReportOpen(reportId, open) {
+export async function setMyReportOpen(reportId: string, open: boolean) {
   const { error } = await supabase
     .from("lost_reports")
     .update({ is_open: open })
@@ -335,7 +452,7 @@ export async function setMyReportOpen(reportId, open) {
   check(error, "Não foi possível atualizar o relato.");
 }
 
-export async function deleteMyReport(report) {
+export async function deleteMyReport(report: Pick<Report, "id">) {
   const { error } = await supabase.from("lost_reports").delete().eq("id", report.id);
   check(error, "Não foi possível excluir o relato.");
 }
@@ -358,13 +475,13 @@ export async function listMyFoundItems() {
 
 // ---------- Administração (recepção) ----------
 // O banco recusa estas operações para quem não tem perfil "staff".
-const maskContact = (x) => ({
+const maskContact = <T extends { contactEmail: string; contactPhone: string }>(x: T) => ({
   ...x,
   contactEmail: maskEmail(x.contactEmail),
   contactPhone: maskPhone(x.contactPhone),
 });
 
-export async function adminOverview() {
+export async function adminOverview(): Promise<AdminOverview> {
   const fail = "Não foi possível carregar o painel.";
   const [itemRows, claimRows, reportRows] = await Promise.all([
     fetchAllRows(
@@ -432,8 +549,11 @@ export async function adminOverview() {
   return { items, claims, reports: reportsRaw.map(maskContact), matches };
 }
 
-export async function updateItem(id, patch) {
-  const allowed = {};
+export async function updateItem(
+  id: string,
+  patch: Partial<Pick<Item, "status" | "sensitive" | "hidden">>,
+) {
+  const allowed: Partial<Pick<Item, "status" | "sensitive" | "hidden">> = {};
   if ("status" in patch) allowed.status = patch.status;
   if ("sensitive" in patch) allowed.sensitive = !!patch.sensitive;
   if ("hidden" in patch) allowed.hidden = !!patch.hidden;
@@ -441,22 +561,22 @@ export async function updateItem(id, patch) {
   check(error, "Não foi possível atualizar o objeto.");
 }
 
-export async function setReportOpen(reportId, open) {
+export async function setReportOpen(reportId: string, open: boolean) {
   return setMyReportOpen(reportId, open);
 }
 
-export async function approveClaim(claimId) {
+export async function approveClaim(claimId: string) {
   const { error } = await supabase.rpc("approve_claim", { p_claim_id: claimId });
   check(error, "Não foi possível aprovar a solicitação.");
 }
 
-export async function rejectClaim(claimId) {
+export async function rejectClaim(claimId: string) {
   const { error } = await supabase.rpc("reject_claim", { p_claim_id: claimId });
   check(error, "Não foi possível recusar a solicitação.");
 }
 
 /** Valida o código apresentado na recepção. Uso único: o objeto vira "Devolvido". */
-export async function validatePickupCode(input) {
+export async function validatePickupCode(input: string): Promise<PickupCodeResult> {
   const raw = (input || "").trim().toUpperCase().replace(/\s+/g, "");
   if (/^(PRD|OBJ)-?[A-Z0-9]{4,}$/.test(raw))
     throw new Error(
@@ -469,13 +589,19 @@ export async function validatePickupCode(input) {
   check(error, "Não foi possível validar o código.");
   if (
     !data ||
-    typeof data.itemRef !== "string" ||
-    typeof data.itemName !== "string" ||
-    typeof data.claimant !== "string"
+    typeof data !== "object" ||
+    Array.isArray(data) ||
+    typeof data["itemRef"] !== "string" ||
+    typeof data["itemName"] !== "string" ||
+    typeof data["claimant"] !== "string"
   ) {
     throw new Error(
       "Não foi possível confirmar o resultado. Confira o status do objeto antes de tentar novamente.",
     );
   }
-  return data;
+  return {
+    itemRef: data["itemRef"],
+    itemName: data["itemName"],
+    claimant: data["claimant"],
+  };
 }

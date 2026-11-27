@@ -1,4 +1,3 @@
-// @ts-nocheck
 import { useState } from "react";
 import { Ticket } from "lucide-react";
 import { approveClaim, rejectClaim } from "../../data/api";
@@ -7,10 +6,17 @@ import { formatDate } from "../../lib/format";
 import { ItemThumb } from "../ItemBits";
 import { Button, EmptyState } from "../ui";
 import { useAction } from "./useAction";
+import type { AdminOverview } from "../../data/types";
 
 const FILTERS = ["Em análise", "Aprovada", "Recusada", "Todas"];
 
-export default function ClaimsPanel({ data, refresh }) {
+export default function ClaimsPanel({
+  data,
+  refresh,
+}: {
+  data: AdminOverview;
+  refresh: () => Promise<unknown>;
+}) {
   const [filter, setFilter] = useState("Em análise");
   const { busy, run } = useAction(refresh);
   const list = data.claims.filter((c) => filter === "Todas" || c.status === filter);
@@ -56,7 +62,7 @@ export default function ClaimsPanel({ data, refresh }) {
                   <span className="font-semibold text-navy-900">Prova de posse: </span>
                   {c.proof}
                 </p>
-                {c.item?.marks?.length > 0 && (
+                {c.item?.marks && c.item.marks.length > 0 && (
                   <p className="mt-2 text-xs text-muted">
                     Marcas registradas: {c.item.marks.join(", ")}
                   </p>

@@ -1,27 +1,35 @@
-// @ts-nocheck
-import { useState } from "react";
+import { useState, type FormEvent } from "react";
 import { Link } from "@/app/lib/router-compat";
 import { useSWRConfig } from "swr";
 import { CircleCheck, EyeOff } from "lucide-react";
 import { createFoundItem } from "../data/api";
-import { useAuth } from "../auth/AuthProvider";
+import { useAuth } from "../auth/auth-context";
+import { ItemFields, PhotoPicker, SuggestionBox } from "../components/forms";
 import {
-  ItemFields,
-  PhotoPicker,
-  SuggestionBox,
-  validateItemFields,
-  todayISO,
   mergeSuggestion,
-} from "../components/forms";
+  todayISO,
+  validateItemFields,
+  type FieldErrors,
+  type ItemFormValues,
+  type PhotoAnalysis,
+} from "../components/form-utils";
 import { FormError } from "../components/AuthCard";
-import { Button, Field, useToast } from "../components/ui";
+import { Button, Field } from "../components/ui";
+import { useToast } from "../components/toast-context";
+import { errorMessage } from "../lib/errorMessage";
 
-const EMPTY = {
+type FoundFormValues = ItemFormValues & {
+  dateFound: string;
+  marks: string;
+  sensitive: boolean;
+  photo: string | null;
+};
+
+const EMPTY: Omit<FoundFormValues, "dateFound"> = {
   name: "",
   category: "",
   color: "",
   location: "",
-  dateFound: "",
   description: "",
   marks: "",
   sensitive: false,
@@ -32,19 +40,20 @@ export default function ReportFound() {
   const { user } = useAuth();
   const toast = useToast();
   const { mutate } = useSWRConfig();
-  const [values, setValues] = useState({ ...EMPTY, dateFound: todayISO() });
-  const [errors, setErrors] = useState({});
-  const [analysis, setAnalysis] = useState(null);
+  const [values, setValues] = useState<FoundFormValues>({ ...EMPTY, dateFound: todayISO() });
+  const [errors, setErrors] = useState<FieldErrors>({});
+  const [analysis, setAnalysis] = useState<PhotoAnalysis | null>(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
-  const [created, setCreated] = useState(null);
-  const set = (k, v) => setValues((s) => ({ ...s, [k]: v }));
+  const [created, setCreated] = useState<{ id: string; ref: string } | null>(null);
+  const set = (key: keyof FoundFormValues, value: string | boolean | null) =>
+    setValues((current) => ({ ...current, [key]: value }));
 
   function applySuggestion() {
     setValues((s) => mergeSuggestion(s, analysis));
   }
 
-  async function submit(e) {
+  async function submit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setError("");
     const errs = validateItemFields(values, "dateFound");
@@ -57,7 +66,7 @@ export default function ReportFound() {
       toast("Objeto registrado. Obrigado por ajudar!");
       setCreated(row);
     } catch (err) {
-      setError(err.message);
+      setError(errorMessage(err, "Não foi possível registrar o objeto."));
     } finally {
       setBusy(false);
     }
@@ -106,7 +115,7 @@ export default function ReportFound() {
           Registrar objeto encontrado
         </h1>
         <p className="mt-2 text-muted">
-          Registrado como {user.email}. Depois de publicar, leve o objeto até a recepção.
+          Registrado como {user?.email}. Depois de publicar, leve o objeto até a recepção.
         </p>
       </header>
       <form onSubmit={submit} className="card space-y-6 p-6 sm:p-8" noValidate>

@@ -1,12 +1,18 @@
-// @ts-nocheck
 import { ClipboardList, MapPin, Calendar } from "lucide-react";
 import { setReportOpen } from "../../data/api";
 import { categoryLabel } from "../../data/constants";
 import { formatDate } from "../../lib/format";
 import { Button, EmptyState } from "../ui";
 import { useAction } from "./useAction";
+import type { AdminOverview } from "../../data/types";
 
-export default function ReportsPanel({ data, refresh }) {
+export default function ReportsPanel({
+  data,
+  refresh,
+}: {
+  data: AdminOverview;
+  refresh: () => Promise<unknown>;
+}) {
   const { busy, run } = useAction(refresh);
   if (!data.reports.length)
     return (

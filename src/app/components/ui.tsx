@@ -1,6 +1,6 @@
-// @ts-nocheck
-import { createContext, useCallback, useContext, useState } from "react";
-import { LoaderCircle, CircleCheck, CircleAlert, X } from "lucide-react";
+import { useCallback, useState, type ButtonHTMLAttributes, type ReactNode } from "react";
+import { LoaderCircle, CircleCheck, CircleAlert, X, type LucideIcon } from "lucide-react";
+import { ToastContext, type Toast, type ToastHandler, type ToastType } from "./toast-context";
 
 const VARIANTS = {
   primary:
@@ -9,9 +9,20 @@ const VARIANTS = {
   ghost: "bg-transparent text-navy-900 hover:bg-navy-50",
   outline: "border border-line bg-white text-navy-900 hover:border-navy-700/40 hover:bg-navy-50",
   danger: "bg-white border border-red-200 text-red-700 hover:bg-red-50",
+} as const;
+
+type ButtonProps = ButtonHTMLAttributes<HTMLButtonElement> & {
+  variant?: keyof typeof VARIANTS;
+  loading?: boolean;
 };
 
-export function Button({ variant = "primary", loading, className = "", children, ...props }) {
+export function Button({
+  variant = "primary",
+  loading = false,
+  className = "",
+  children,
+  ...props
+}: ButtonProps) {
   return (
     <button
       {...props}
@@ -25,7 +36,7 @@ export function Button({ variant = "primary", loading, className = "", children,
   );
 }
 
-export function Spinner({ label = "Carregando…" }) {
+export function Spinner({ label = "Carregando…" }: { label?: string }) {
   return (
     <div className="flex items-center justify-center gap-3 py-16 text-muted" role="status">
       <LoaderCircle className="size-5 animate-spin text-flame-500" /> {label}
@@ -33,7 +44,15 @@ export function Spinner({ label = "Carregando…" }) {
   );
 }
 
-export function Field({ label, error, hint, children, required }) {
+type FieldProps = {
+  label: string;
+  error?: string | undefined;
+  hint?: string | undefined;
+  children: ReactNode;
+  required?: boolean | undefined;
+};
+
+export function Field({ label, error, hint, children, required }: FieldProps) {
   return (
     <label className="block">
       <span className="label">
@@ -49,7 +68,15 @@ export function Field({ label, error, hint, children, required }) {
   );
 }
 
-export function EmptyState({ icon: Icon, title, children }) {
+export function EmptyState({
+  icon: Icon,
+  title,
+  children,
+}: {
+  icon?: LucideIcon;
+  title: string;
+  children?: ReactNode;
+}) {
   return (
     <div className="card flex flex-col items-center px-6 py-14 text-center">
       {Icon && (
@@ -63,7 +90,17 @@ export function EmptyState({ icon: Icon, title, children }) {
   );
 }
 
-export function Modal({ open, onClose, title, children }) {
+export function Modal({
+  open,
+  onClose,
+  title,
+  children,
+}: {
+  open: boolean;
+  onClose: () => void;
+  title: string;
+  children?: ReactNode;
+}) {
   if (!open) return null;
   return (
     <div
@@ -93,18 +130,15 @@ export function Modal({ open, onClose, title, children }) {
   );
 }
 
-const ToastCtx = createContext(() => {});
-export const useToast = () => useContext(ToastCtx);
-
-export function ToastProvider({ children }) {
-  const [toasts, setToasts] = useState([]);
-  const push = useCallback((message, type = "success") => {
+export function ToastProvider({ children }: { children: ReactNode }) {
+  const [toasts, setToasts] = useState<Toast[]>([]);
+  const push: ToastHandler = useCallback((message: string, type: ToastType = "success") => {
     const id = Math.random();
     setToasts((t) => [...t, { id, message, type }]);
     setTimeout(() => setToasts((t) => t.filter((x) => x.id !== id)), 4200);
   }, []);
   return (
-    <ToastCtx.Provider value={push}>
+    <ToastContext.Provider value={push}>
       {children}
       <div className="pointer-events-none fixed inset-x-0 bottom-4 z-[60] flex flex-col items-center gap-2 px-4">
         {toasts.map((t) => (
@@ -121,6 +155,6 @@ export function ToastProvider({ children }) {
           </div>
         ))}
       </div>
-    </ToastCtx.Provider>
+    </ToastContext.Provider>
   );
 }

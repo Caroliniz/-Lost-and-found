@@ -1,4 +1,3 @@
-// @ts-nocheck
 // Ferramentas de imagem no navegador:
 // 1) validação + re-codificação (remove metadados EXIF, inclusive GPS)
 // 2) analisador local de fallback (cor dominante e características visuais)
@@ -8,14 +7,14 @@ export const ACCEPTED_TYPES = ["image/jpeg", "image/png", "image/webp"];
 export const MAX_BYTES = 8 * 1024 * 1024;
 const MAX_SIDE = 1200;
 
-export function validateImage(file) {
+export function validateImage(file: File) {
   if (!file) return "Selecione uma imagem.";
   if (!ACCEPTED_TYPES.includes(file.type)) return "Formato não suportado. Use JPG, PNG ou WEBP.";
   if (file.size > MAX_BYTES) return "A imagem deve ter no máximo 8 MB.";
   return null;
 }
 
-async function loadBitmap(file) {
+async function loadBitmap(file: File): Promise<ImageBitmap | HTMLImageElement> {
   if ("createImageBitmap" in window) {
     // imageOrientation aplica a rotação do EXIF antes de descartá-lo
     return createImageBitmap(file, { imageOrientation: "from-image" });
@@ -32,7 +31,7 @@ async function loadBitmap(file) {
 }
 
 /** Redesenha a foto num canvas e exporta como JPEG novo, sem nenhum metadado. */
-export async function reencodeImage(file) {
+export async function reencodeImage(file: File) {
   const error = validateImage(file);
   if (error) throw new Error(error);
   let bmp;
@@ -48,14 +47,15 @@ export async function reencodeImage(file) {
   canvas.width = w;
   canvas.height = h;
   const ctx = canvas.getContext("2d");
+  if (!ctx) throw new Error("Não foi possível preparar a imagem.");
   ctx.fillStyle = "#fff";
   ctx.fillRect(0, 0, w, h);
   ctx.drawImage(bmp, 0, 0, w, h);
-  bmp.close?.();
+  if ("close" in bmp) bmp.close();
   return { dataUrl: canvas.toDataURL("image/jpeg", 0.82), width: w, height: h };
 }
 
-function rgbToHsl(r, g, b) {
+function rgbToHsl(r: number, g: number, b: number): [number, number, number] {
   r /= 255;
   g /= 255;
   b /= 255;
@@ -72,7 +72,7 @@ function rgbToHsl(r, g, b) {
   return [h * 60, s, l];
 }
 
-function colorName([h, s, l]) {
+function colorName([h, s, l]: [number, number, number]) {
   if (l < 0.16) return "preto";
   if (l > 0.88 && s < 0.35) return "branco";
   if (s < 0.14) return l > 0.62 ? "prata" : "cinza";
@@ -87,7 +87,7 @@ function colorName([h, s, l]) {
   return "rosa";
 }
 
-const NAME_HINTS = [
+const NAME_HINTS: [RegExp, string][] = [
   [/garraf|bottle|copo|squeeze|termic/i, "garrafas"],
   [/fone|phone|celular|iphone|samsung|notebook|carregador|cabo|mouse|airpod/i, "eletronicos"],
   [/chave|key/i, "chaves"],
@@ -102,7 +102,7 @@ const NAME_HINTS = [
  * Analisador local (sem IA): estima cor dominante/secundária, tom e formato,
  * e tenta inferir a categoria pelo nome do arquivo. Sempre editável pelo usuário.
  */
-export async function analyzeLocally(dataUrl, fileName = "") {
+export async function analyzeLocally(dataUrl: string, fileName = "") {
   const img = new Image();
   img.src = dataUrl;
   await img.decode();
@@ -111,17 +111,18 @@ export async function analyzeLocally(dataUrl, fileName = "") {
   canvas.width = S;
   canvas.height = S;
   const ctx = canvas.getContext("2d", { willReadFrequently: true });
+  if (!ctx) throw new Error("Não foi possível analisar a imagem.");
   ctx.drawImage(img, 0, 0, S, S);
   const { data } = ctx.getImageData(0, 0, S, S);
 
-  const counts = {};
+  const counts: Record<string, number> = {};
   let lightSum = 0,
     n = 0;
   for (let y = 0; y < S; y++) {
     for (let x = 0; x < S; x++) {
       const i = (y * S + x) * 4;
-      const hsl = rgbToHsl(data[i], data[i + 1], data[i + 2]);
-      lightSum += hsl[2];
+      const hsl = rgbToHsl(data[i] ?? 0, data[i + 1] ?? 0, data[i + 2] ?? 0);
+      lightSum += hsl[2] ?? 0;
       n++;
       // pondera o centro (onde o objeto costuma estar) mais que as bordas
       const dx = (x - S / 2) / (S / 2),
@@ -131,12 +132,14 @@ export async function analyzeLocally(dataUrl, fileName = "") {
       counts[name] = (counts[name] || 0) + weight;
     }
   }
-  const ranked = Object.entries(counts).sort((a, b) => b[1] - a[1]);
+  const ranked = Object.entries(counts).sort((a, b) => b[1] - a[1]) as [string, number][];
   // ignora fundo branco/cinza claro se houver outra cor relevante
-  let primary = ranked[0][0];
-  if (["branco", "prata"].includes(primary) && ranked[1] && ranked[1][1] > ranked[0][1] * 0.35)
+  const top = ranked[0];
+  if (!top) throw new Error("Não foi possível identificar as cores da imagem.");
+  let primary = top[0];
+  if (["branco", "prata"].includes(primary) && ranked[1] && ranked[1][1] > top[1] * 0.35)
     primary = ranked[1][0];
-  const secondary = ranked.find(([c, v]) => c !== primary && v > ranked[0][1] * 0.2)?.[0];
+  const secondary = ranked.find(([c, v]) => c !== primary && v > top[1] * 0.2)?.[0];
 
   const hint = NAME_HINTS.find(([re]) => re.test(fileName));
   const category = hint ? hint[1] : "outros";

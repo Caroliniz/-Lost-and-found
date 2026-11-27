@@ -1,18 +1,14 @@
-// @ts-nocheck
 import { useEffect, useState } from "react";
-import { NavLink, Link, Outlet, useLocation } from "@/app/lib/router-compat";
+import { NavLink, Link, Outlet } from "@/app/lib/router-compat";
+import { useLocation } from "@/app/lib/router-hooks";
 import { Menu, X, ShieldCheck, LogOut, UserRound } from "lucide-react";
-import { useAuth } from "../auth/AuthProvider";
+import { useAuth } from "../auth/auth-context";
+import { NAV } from "../data/navigation";
 
-export const NAV = [
-  { to: "/", label: "Início", end: true },
-  { to: "/procurar", label: "Procurar" },
-  { to: "/achei", label: "Achei algo" },
-  { to: "/perdi", label: "Perdi algo" },
-  { to: "/admin", label: "Administração", staff: true },
-];
+type LinkState = { isActive: boolean };
+type LinkClassName = (state: LinkState) => string;
 
-function AccountLinks({ linkCls, mobile }) {
+function AccountLinks({ linkCls, mobile = false }: { linkCls: LinkClassName; mobile?: boolean }) {
   const { user, profile, signOut, loading } = useAuth();
   if (loading) return null;
   if (!user) {
@@ -77,7 +73,7 @@ export default function Layout() {
     window.scrollTo(0, 0);
   }, [pathname]);
 
-  const linkCls = ({ isActive }) =>
+  const linkCls: LinkClassName = ({ isActive }) =>
     `rounded-lg px-3 py-2 text-sm font-semibold transition ${isActive ? "bg-navy-900 text-white" : "text-navy-900/80 hover:bg-navy-50 hover:text-navy-900"}`;
 
   return (

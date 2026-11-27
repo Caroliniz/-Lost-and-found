@@ -1,10 +1,10 @@
-// @ts-nocheck
-import { useState } from "react";
+import { useState, type FormEvent } from "react";
 import { Link } from "@/app/lib/router-compat";
 import { updateMyProfile } from "../../data/api";
-import { useAuth } from "../../auth/AuthProvider";
+import { useAuth } from "../../auth/auth-context";
 import { FormError } from "../AuthCard";
-import { Button, Field, useToast } from "../ui";
+import { Button, Field } from "../ui";
+import { useToast } from "../toast-context";
 
 export default function ProfileCard() {
   const { profile, refreshProfile } = useAuth();
@@ -14,7 +14,7 @@ export default function ProfileCard() {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
 
-  async function submit(e) {
+  async function submit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setError("");
     const digits = phone.replace(/\D/g, "");
@@ -25,7 +25,7 @@ export default function ProfileCard() {
     try {
       await updateMyProfile({ fullName, phone: digits });
     } catch (err) {
-      setError(err.message);
+      setError(err instanceof Error ? err.message : "Não foi possível salvar o perfil.");
       setBusy(false);
       return;
     }

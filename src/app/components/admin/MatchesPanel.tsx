@@ -1,10 +1,10 @@
-// @ts-nocheck
 import { Link } from "@/app/lib/router-compat";
 import { Sparkles } from "lucide-react";
 import { ItemThumb } from "../ItemBits";
 import { EmptyState } from "../ui";
+import type { AdminOverview } from "../../data/types";
 
-export default function MatchesPanel({ data }) {
+export default function MatchesPanel({ data }: { data: AdminOverview }) {
   if (!data.matches.length) {
     return (
       <EmptyState icon={Sparkles} title="Sem correspondências">

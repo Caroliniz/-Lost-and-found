@@ -1,4 +1,3 @@
-// @ts-nocheck
 import { useState } from "react";
 import useSWR from "swr";
 import { Ticket, Boxes, ClipboardList, Sparkles, KeyRound, ShieldAlert } from "lucide-react";
@@ -24,6 +23,7 @@ export default function Admin() {
       </div>
     );
   }
+  if (!data) return <Spinner label="Carregando painel…" />;
 
   const pending = data.claims.filter((c) => c.status === "Em análise").length;
   const tabs = [
@@ -65,7 +65,7 @@ export default function Admin() {
             className={`inline-flex shrink-0 items-center gap-2 rounded-xl px-4 py-2 text-sm font-semibold transition ${tab === id ? "bg-navy-900 text-white" : "text-navy-900/80 hover:bg-navy-50"}`}
           >
             <Icon className="size-4" /> {label}
-            {badge > 0 && (
+            {badge !== undefined && badge > 0 && (
               <span
                 className={`rounded-full px-1.5 text-xs ${tab === id ? "bg-flame-500 text-white" : "bg-flame-100 text-flame-600"}`}
               >

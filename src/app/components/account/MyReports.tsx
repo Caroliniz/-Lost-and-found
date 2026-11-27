@@ -1,4 +1,3 @@
-// @ts-nocheck
 import { useState } from "react";
 import { Link } from "@/app/lib/router-compat";
 import useSWR, { useSWRConfig } from "swr";
@@ -6,17 +5,21 @@ import { ClipboardList, MapPin, Calendar } from "lucide-react";
 import { listMyReports, setMyReportOpen, deleteMyReport } from "../../data/api";
 import { categoryLabel } from "../../data/constants";
 import { formatDate } from "../../lib/format";
-import { useAuth } from "../../auth/AuthProvider";
-import { Button, EmptyState, Spinner, useToast } from "../ui";
+import { useAuth } from "../../auth/auth-context";
+import { Button, EmptyState, Spinner } from "../ui";
+import { useToast } from "../toast-context";
 
 export default function MyReports() {
   const { user } = useAuth();
   const toast = useToast();
   const { mutate: globalMutate } = useSWRConfig();
-  const { data, error, isLoading, mutate } = useSWR(["my-reports", user.id], listMyReports);
-  const [busyId, setBusyId] = useState(null);
+  const { data, error, isLoading, mutate } = useSWR(
+    user ? ["my-reports", user.id] : null,
+    listMyReports,
+  );
+  const [busyId, setBusyId] = useState<string | null>(null);
 
-  async function run(id, fn, message) {
+  async function run(id: string, fn: () => Promise<unknown>, message: string) {
     setBusyId(id);
     try {
       await fn();
@@ -24,7 +27,7 @@ export default function MyReports() {
       mutate();
       globalMutate(["public", "stats"]);
     } catch (err) {
-      toast(err.message, "error");
+      toast(err instanceof Error ? err.message : "Não foi possível concluir a ação.", "error");
     } finally {
       setBusyId(null);
     }
@@ -37,6 +40,7 @@ export default function MyReports() {
         {error.message}
       </EmptyState>
     );
+  if (!data) return <Spinner />;
   if (!data.length) {
     return (
       <EmptyState icon={ClipboardList} title="Nenhum relato">

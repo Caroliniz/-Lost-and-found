@@ -1,8 +1,7 @@
-// @ts-nocheck
 import { useState } from "react";
 import { Link } from "@/app/lib/router-compat";
 import { UserRound, Ticket, ClipboardList, HandHeart } from "lucide-react";
-import { useAuth } from "../auth/AuthProvider";
+import { useAuth } from "../auth/auth-context";
 import ProfileCard from "../components/account/ProfileCard";
 import MyClaims from "../components/account/MyClaims";
 import MyReports from "../components/account/MyReports";
@@ -18,7 +17,7 @@ const TABS = [
 export default function Account() {
   const { profile, user, isStaff } = useAuth();
   const [tab, setTab] = useState("claims");
-  const Active = TABS.find((t) => t.id === tab).Component;
+  const Active = TABS.find((t) => t.id === tab)?.Component ?? MyClaims;
 
   return (
     <div className="mx-auto max-w-5xl px-4 py-10 sm:px-6">
@@ -30,7 +29,7 @@ export default function Account() {
           <h1 className="mt-1 text-3xl font-extrabold text-navy-900">
             Olá, {profile?.fullName?.split(" ")[0] || "tudo bem"}?
           </h1>
-          <p className="mt-1 text-sm text-muted">{user.email}</p>
+          <p className="mt-1 text-sm text-muted">{user?.email}</p>
         </div>
         {isStaff && (
           <Link to="/admin" className="text-sm font-semibold text-flame-600 underline">

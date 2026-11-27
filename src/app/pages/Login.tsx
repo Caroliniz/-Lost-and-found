@@ -1,12 +1,14 @@
-// @ts-nocheck
-import { useState } from "react";
-import { Link, Navigate, useLocation, useNavigate } from "@/app/lib/router-compat";
+import { useState, type FormEvent } from "react";
+import type { AuthError } from "@supabase/supabase-js";
+import { Link, Navigate } from "@/app/lib/router-compat";
+import { useLocation, useNavigate } from "@/app/lib/router-hooks";
 import { supabase, authRedirectUrl } from "../lib/supabase";
-import { useAuth } from "../auth/AuthProvider";
+import { useAuth } from "../auth/auth-context";
 import AuthCard, { FormError } from "../components/AuthCard";
 import { Button, Field } from "../components/ui";
+import { getRedirectPath } from "../lib/router-utils";
 
-function loginError(error) {
+function loginError(error: AuthError): { text: string; unconfirmed?: boolean } {
   if (error.code === "email_not_confirmed")
     return {
       text: "Confirme seu e-mail antes de entrar. Verifique sua caixa de entrada.",
@@ -23,16 +25,16 @@ export default function Login() {
   const { user, loading } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
-  const from = location.state?.from || "/minha-conta";
+  const from = getRedirectPath(location.state, "/minha-conta");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [busy, setBusy] = useState(false);
-  const [error, setError] = useState(null);
+  const [error, setError] = useState<{ text: string; unconfirmed?: boolean } | null>(null);
   const [resent, setResent] = useState(false);
 
   if (!loading && user) return <Navigate to={from} replace />;
 
-  async function submit(e) {
+  async function submit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setError(null);
     setBusy(true);
