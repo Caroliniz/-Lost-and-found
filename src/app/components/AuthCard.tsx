@@ -10,10 +10,17 @@ export default function AuthCard({ eyebrow, title, subtitle, children, footer })
       </div>
       {footer && <div className="mt-5 text-center text-sm text-muted">{footer}</div>}
     </div>
-  )
+  );
 }
 
 export function FormError({ children }) {
-  if (!children) return null
-  return <p role="alert" className="rounded-xl border border-red-200 bg-red-50 px-3.5 py-2.5 text-sm font-medium text-red-700">{children}</p>
+  if (!children) return null;
+  return (
+    <p
+      role="alert"
+      className="rounded-xl border border-red-200 bg-red-50 px-3.5 py-2.5 text-sm font-medium text-red-700"
+    >
+      {children}
+    </p>
+  );
 }

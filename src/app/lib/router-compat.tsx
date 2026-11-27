@@ -61,7 +61,16 @@ export function Link({ to, state, replace, onClick, ...rest }: LinkProps) {
       {...rest}
       onClick={(e) => {
         onClick?.(e);
-        if (e.defaultPrevented || e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey || rest["target"]) return;
+        if (
+          e.defaultPrevented ||
+          e.button !== 0 ||
+          e.metaKey ||
+          e.ctrlKey ||
+          e.shiftKey ||
+          e.altKey ||
+          rest["target"]
+        )
+          return;
         e.preventDefault();
         navigate(to, { replace, state });
       }}
@@ -71,7 +80,8 @@ export function Link({ to, state, replace, onClick, ...rest }: LinkProps) {
 
 export function NavLink({ to, end, className, children, ...rest }: LinkProps & { end?: boolean }) {
   const { pathname } = useLocation();
-  const isActive = end || to === "/" ? pathname === to : pathname === to || pathname.startsWith(to + "/");
+  const isActive =
+    end || to === "/" ? pathname === to : pathname === to || pathname.startsWith(to + "/");
   const cls = typeof className === "function" ? className({ isActive }) : className;
   const kids = typeof children === "function" ? children({ isActive }) : children;
   return (
@@ -81,7 +91,15 @@ export function NavLink({ to, end, className, children, ...rest }: LinkProps & {
   );
 }
 
-export function Navigate({ to, replace, state }: { to: string; replace?: boolean; state?: Record<string, unknown> }) {
+export function Navigate({
+  to,
+  replace,
+  state,
+}: {
+  to: string;
+  replace?: boolean;
+  state?: Record<string, unknown>;
+}) {
   const navigate = useNavigate();
   useEffect(() => {
     navigate(to, { replace, state });
