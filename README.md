@@ -50,13 +50,13 @@ Additional features may be documented as they are implemented.
 
 ### Languages and Technologies
 
-- **Java:** back-end development.
+- **React:** back-end development.
 - **JavaScript:** development of application functionalities.
 - **React:** user interface development.
 - **TypeScript:** front-end development with static typing.
-- **PL/pgSQL:** procedural language used with PostgreSQL.
+- **PL/pgSQL:** procedural language used with Supabase/Lovable.
 
-**Database:** PostgreSQL.
+**Database:** Supabase/Lovable.
 
 _The frameworks, libraries, and specific versions will be detailed once the project's configuration has been confirmed._
 
@@ -87,7 +87,7 @@ _This structure is an initial reference and should be adjusted to match the actu
 
 ### Prerequisites
 
-- Java (version to be confirmed).
+- React.
 - Node.js and npm.
 - PostgreSQL.
 - Git.
@@ -98,7 +98,7 @@ The project's back-end uses _Supabase/Lovable Cloud_ as its backend platform.
 
 Supabase provides the following services:
 
-- _PostgreSQL:_ database management and data storage.
+- _Supabase/Lovable:_ database management and data storage.
 - _Authentication:_ user authentication.
 - _Storage:_ file and image storage.
 - _RPC Functions:_ execution of database functions.

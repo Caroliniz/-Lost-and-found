@@ -87,9 +87,9 @@ _Esta representação é uma referência inicial e deverá ser ajustada para cor
 
 ### Pré-requisitos
 
-- Java (versão a confirmar).
+- React.
 - Node.js e npm.
-- PostgreSQL.
+- Supabase/Lovable.
 - Git.
 
 ### Back-end
@@ -98,7 +98,7 @@ O back-end do projeto utiliza Supabase/Lovable Cloud como plataforma de serviço
 
 O Supabase fornece os seguintes recursos:
 
-PostgreSQL: gerenciamento e armazenamento dos dados.
+Supabase/Lovable: gerenciamento e armazenamento dos dados.
 
 Autenticação: gerenciamento da autenticação dos usuários.
 
